@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RL Factory — Detección de Anomalías con Aprendizaje por Refuerzo</title>
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+<nav>
+  <span class="logo">RL FACTORY</span>
+  <ul class="nav-links">
+    <li><a href="#hero">Inicio</a></li>
+    <li><a href="#intro">¿Qué es RL?</a></li>
+    <li><a href="#concepts">Conceptos</a></li>
+    <li><a href="#algorithm">Q-Learning</a></li>
+    <li><a href="#casestudy">Caso</a></li>
+    <li><a href="#simulation">Simulación</a></li>
+    <li><a href="#conclusion">Conclusiones</a></li>
+  </ul>
+</nav>
+
+<!-- ========== SECCIÓN 1: HERO ========== -->
+<section id="hero">
+  <div class="container">
+    <h1>Aprendizaje por Refuerzo para<br>Detección de Anomalías</h1>
+    <p class="subtitle">
+      Un agente inteligente aprende a clasificar productos en una cinta transportadora:
+      distinguir cajas normales de defectuosas mediante prueba y error.
+    </p>
+    <a href="#simulation" class="cta">Ver simulación</a>
+    <p class="meta">
+      Sistemas Inteligentes — Entrega: 10 de Julio 2026
+    </p>
+  </div>
+</section>
+
+<!-- ========== SECCIÓN 2: INTRODUCCIÓN A RL ========== -->
+<section id="intro">
+  <div class="container">
+    <h2>¿Qué es el Aprendizaje por Refuerzo?</h2>
+    <p>
+      El Aprendizaje por Refuerzo (RL) es un paradigma de la Inteligencia Artificial donde un
+      <strong style="color:var(--accent)">agente</strong> aprende a tomar decisiones mediante la
+      interacción con un <strong style="color:var(--accent)">entorno</strong>. A diferencia del
+      aprendizaje supervisado tradicional, el agente no recibe etiquetas correctas, sino
+      <strong style="color:var(--green)">recompensas</strong> o
+      <strong style="color:var(--red)">penalizaciones</strong> según la calidad de sus acciones.
+    </p>
+    <p style="margin-top:1rem">
+      Este enfoque es ideal para problemas de toma de decisiones secuenciales en contextos
+      dinámicos e inciertos, como robots industriales, vehículos autónomos o sistemas de
+      control de calidad — precisamente el escenario que exploramos en este proyecto.
+    </p>
+  </div>
+</section>
+
+<!-- ========== SECCIÓN 3: CONCEPTOS ========== -->
+<section id="concepts">
+  <div class="container">
+    <h2>Conceptos Fundamentales</h2>
+    <p style="text-align:center;margin-bottom:1.5rem">Haz clic en cada tarjeta para ver su aplicación en La Fábrica.</p>
+    <div class="cards-grid" id="concept-cards">
+      <div class="card" data-concept="agente">
+        <span class="emoji">🤖</span>
+        <h4>Agente</h4>
+        <p>Quien toma las decisiones: el brazo robótico.</p>
+        <div class="detail">
+          El brazo robótico ubicado sobre la cinta transportadora decide, para cada caja que pasa,
+          si debe <strong>dejarla pasar</strong> o <strong>descartarla</strong>.
+        </div>
+      </div>
+      <div class="card" data-concept="entorno">
+        <span class="emoji">🏭</span>
+        <h4>Entorno</h4>
+        <p>El mundo con el que interactúa: la línea de producción.</p>
+        <div class="detail">
+          La cinta transportadora, las cajas que desfilan y los sensores que miden
+          sus características (apariencia y estabilidad) constituyen el entorno.
+        </div>
+      </div>
+      <div class="card" data-concept="estado">
+        <span class="emoji">📊</span>
+        <h4>Estado</h4>
+        <p>Lo que el agente percibe: apariencia y estabilidad.</p>
+        <div class="detail">
+          El agente observa dos variables: <strong>Apariencia</strong> (Normal/Alterada) y
+          <strong>Estabilidad</strong> (Fija/Vibrando). Combinadas producen 4 posibles estados.
+        </div>
+      </div>
+      <div class="card" data-concept="accion">
+        <span class="emoji">🎬</span>
+        <h4>Acción</h4>
+        <p>Lo que el agente puede hacer: dejar pasar o descartar.</p>
+        <div class="detail">
+          <strong>Dejar pasar (0):</strong> el brazo permanece en reposo.<br>
+          <strong>Descartar (1):</strong> el brazo empuja la caja fuera de la cinta.
+        </div>
+      </div>
+      <div class="card" data-concept="recompensa">
+        <span class="emoji">🏆</span>
+        <h4>Recompensa</h4>
+        <p>La señal de feedback que guía el aprendizaje.</p>
+        <div class="detail">
+          Es la señal que le dice al brazo si lo hizo bien (+10) o mal (-20).
+          Así aprende sin ser programado con reglas estáticas.
+        </div>
+      </div>
+      <div class="card" data-concept="politica">
+        <span class="emoji">🧠</span>
+        <h4>Política</h4>
+        <p>La estrategia que mapea estados a acciones.</p>
+        <div class="detail">
+          Al inicio explora aleatoriamente (epsilon = 1.0). Conforme aprende,
+          explota lo que sabe: deriva hacia decisiones óptimas basadas en la Q-table.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECCIÓN 4: Q-LEARNING ========== -->
+<section id="algorithm">
+  <div class="container">
+    <h2>Algoritmo: Q-Learning</h2>
+    <p>
+      Q-Learning es un algoritmo de RL <em>libre de modelo</em> que aprende una
+      <strong>función de valor Q(s, a)</strong>: la recompensa esperada al tomar la
+      acción <strong>a</strong> desde el estado <strong>s</strong> y seguir la política óptima
+      a partir de entonces.
+    </p>
+
+    <p style="margin-top:1rem;color:var(--accent);font-family:var(--font-mono);text-align:center">
+      Q(s, a) ← Q(s, a) + α [ r + γ · max Q(s', a') − Q(s, a) ]
+    </p>
+
+    <ol class="algo-steps" style="margin-top:1.5rem">
+      <li>Inicializar Q(s, a) = 0 para todos los estados y acciones.</li>
+      <li>Observar el estado actual <strong>s</strong> de la caja.</li>
+      <li>Elegir acción <strong>a</strong> usando la política epsilon-greedy.</li>
+      <li>Ejecutar <strong>a</strong>, observar recompensa <strong>r</strong> y nuevo estado <strong>s'</strong>.</li>
+      <li>Actualizar Q(s, a) con la ecuación de Bellman.</li>
+      <li>Decaer epsilon para reducir exploración. Repetir desde paso 2.</li>
+    </ol>
+
+    <h3 style="margin-top:2rem">Q-Table editable</h3>
+    <p>Modifica los valores manualmente para ver cómo cambia el comportamiento del agente:</p>
+    <div class="qtable-grid" id="qtable-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Estado</th>
+            <th>Dejar pasar (Q0)</th>
+            <th>Descartar (Q1)</th>
+          </tr>
+        </thead>
+        <tbody id="qtable-body">
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECCIÓN 5: CASO PRÁCTICO ========== -->
+<section id="casestudy">
+  <div class="container">
+    <h2>Caso Práctico: La Fábrica</h2>
+    <p>
+      En una línea de producción industrial, una cinta transportadora mueve cajas de izquierda
+      a derecha. Un brazo robótico inspecciona cada unidad y debe decidir si <strong>dejarla
+      pasar</strong> al embalaje o <strong>descartarla</strong> por defectuosa.
+    </p>
+
+    <p style="margin-top:1rem">
+      Las cajas defectuosas presentan
+      <span style="color:var(--red)">color rojizo</span>,
+      <span style="color:var(--red)">bordes deformados</span> y una
+      <span style="color:var(--red)">vibración visible</span>.
+      Las cajas normales son verdes, simétricas y estables.
+    </p>
+
+    <h3 style="margin-top:2rem">Modelado del problema</h3>
+    <table class="case-table">
+      <thead>
+        <tr><th>Elemento RL</th><th>Correspondencia en La Fábrica</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Agente</td><td>Brazo robótico clasificador</td></tr>
+        <tr><td>Entorno</td><td>Cinta transportadora + flujo de cajas</td></tr>
+        <tr><td>Estado</td><td>{Apariencia, Estabilidad} → 4 combinaciones</td></tr>
+        <tr><td>Acción</td><td>0 = Dejar pasar, 1 = Descartar</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top:1.5rem">Esquema de recompensas</h3>
+    <table class="case-table">
+      <thead>
+        <tr><th>Situación</th><th>Recompensa</th><th>Significado</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Descartar caja defectuosa</td><td class="reward-pos">+10</td><td>Detección correcta</td></tr>
+        <tr><td>Dejar pasar caja normal</td><td class="reward-pos">+1</td><td>Flujo sin interrupciones</td></tr>
+        <tr><td>Descartar caja normal</td><td class="reward-neg">−10</td><td>Desperdicio de producto</td></tr>
+        <tr><td>Dejar pasar caja defectuosa</td><td class="reward-crit">−20</td><td>Fallo crítico: anomalía al cliente</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top:2rem">¿Por qué RL y no reglas fijas?</h3>
+    <p>
+      Un clasificador por reglas (if apariencia === 'Alterada' → descartar) funciona en condiciones
+      ideales. Pero en la realidad los sensores tienen <strong>ruido</strong>, se <strong>desgastan</strong>
+      y las anomalías pueden <strong>mutar</strong>. Un agente RL se adapta continuamente: si el patrón
+      de defectos cambia, reajusta su política mediante la señal de recompensa, sin intervención humana.
+    </p>
+  </div>
+</section>
+
+<!-- ========== SECCIÓN 6: SIMULACIÓN ========== -->
+<section id="simulation">
+  <div class="container simulator-layout">
+    <h2>Simulación Interactiva</h2>
+
+    <div class="metrics-bar">
+      <div class="metric">
+        <div class="metric-label">Puntaje</div>
+        <div class="metric-value positive" id="score">0</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Errores</div>
+        <div class="metric-value" id="errors">0</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Episodio</div>
+        <div class="metric-value" id="episode">1</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Epsilon</div>
+        <div class="metric-value" id="epsilon">1.000</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Pasos totales</div>
+        <div class="metric-value" id="total-steps">0</div>
+      </div>
+    </div>
+
+    <canvas id="simulator-canvas"></canvas>
+
+    <div class="controls-bar">
+      <button class="primary" id="btn-train">▶ Entrenar</button>
+      <button id="btn-pause">⏸ Pausa</button>
+      <button id="btn-step">⏭ Paso</button>
+      <button id="btn-speed">⏩ x2</button>
+      <button id="btn-reset">🔄 Reset</button>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SECCIÓN 7: CONCLUSIONES ========== -->
+<section id="conclusion">
+  <div class="container">
+    <h2>Conclusiones y Limitaciones</h2>
+
+    <h3>Aportes del proyecto</h3>
+    <ul>
+      <li>El Aprendizaje por Refuerzo es una herramienta poderosa para problemas donde las reglas de decisión no son triviales o el entorno cambia con el tiempo.</li>
+      <li>Q-Learning tabular converge rápidamente en espacios de estado pequeños como el de La Fábrica (4 estados × 2 acciones).</li>
+      <li>La visualización interactiva demuestra el proceso de aprendizaje mejor que cualquier explicación estática.</li>
+    </ul>
+
+    <h3 style="margin-top:2rem">Limitaciones</h3>
+    <ul>
+      <li>La simulación asume un entorno ideal sin ruido de sensor ni fallos del brazo robótico.</li>
+      <li>Q-Learning tabular no escala a problemas con espacios de estado continuos (requeriría Deep Q-Networks).</li>
+      <li>El modelo de cajas es binario (normal/defectuoso), simplificando la complejidad real del control de calidad.</li>
+    </ul>
+
+    <h3 style="margin-top:2rem">Referencias</h3>
+    <ul>
+      <li>Sutton, R. S., &amp; Barto, A. G. (2018). <em>Reinforcement Learning: An Introduction</em>. MIT Press.</li>
+      <li>Watkins, C. J. C. H., &amp; Dayan, P. (1992). Q-Learning. <em>Machine Learning</em>, 8(3), 279–292.</li>
+    </ul>
+  </div>
+</section>
+
+<script src="js/qlearning.js"></script>
+<script src="js/simulator.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
