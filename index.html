@@ -63,57 +63,76 @@
     <p style="text-align:center;margin-bottom:1.5rem">Haz clic en cada tarjeta para ver su aplicación en La Fábrica.</p>
     <div class="cards-grid" id="concept-cards">
       <div class="card" data-concept="agente">
-        <span class="emoji">🤖</span>
         <h4>Agente</h4>
-        <p>Quien toma las decisiones: el brazo robótico.</p>
+        <p>El que aprende y decide. En RL, el agente percibe el entorno y actúa sobre él para maximizar la recompensa acumulada.</p>
         <div class="detail">
-          El brazo robótico ubicado sobre la cinta transportadora decide, para cada caja que pasa,
-          si debe <strong>dejarla pasar</strong> o <strong>descartarla</strong>.
+          <p>En <strong>La Fábrica</strong>, el agente es el <strong>brazo robótico clasificador</strong> ubicado sobre la cinta transportadora.</p>
+          <p>Su función: inspeccionar cada caja y decidir si <strong>dejarla pasar</strong> al embalaje o <strong>descartarla</strong> por defectuosa.</p>
+          <p>No recibe instrucciones explícitas. Aprende únicamente a partir de la <strong>señal de recompensa</strong> tras cada acción.</p>
         </div>
       </div>
       <div class="card" data-concept="entorno">
-        <span class="emoji">🏭</span>
         <h4>Entorno</h4>
-        <p>El mundo con el que interactúa: la línea de producción.</p>
+        <p>El mundo externo con el que interactúa el agente: recibe sus acciones y le devuelve estados y recompensas.</p>
         <div class="detail">
-          La cinta transportadora, las cajas que desfilan y los sensores que miden
-          sus características (apariencia y estabilidad) constituyen el entorno.
+          <p>En <strong>La Fábrica</strong>, el entorno incluye:</p>
+          <ul>
+            <li>La <strong>cinta transportadora</strong> que mueve las cajas</li>
+            <li>Los <strong>sensores</strong> que miden apariencia y estabilidad</li>
+            <li>El <strong>flujo de cajas</strong> generadas aleatoriamente con 35% de probabilidad de defecto</li>
+          </ul>
+          <p>El entorno es <strong>estocástico</strong>: las características de cada caja no son deterministas, lo que obliga al agente a generalizar.</p>
         </div>
       </div>
       <div class="card" data-concept="estado">
-        <span class="emoji">📊</span>
         <h4>Estado</h4>
-        <p>Lo que el agente percibe: apariencia y estabilidad.</p>
+        <p>Una fotografía del entorno en un instante. Es toda la información que el agente necesita para decidir.</p>
         <div class="detail">
-          El agente observa dos variables: <strong>Apariencia</strong> (Normal/Alterada) y
-          <strong>Estabilidad</strong> (Fija/Vibrando). Combinadas producen 4 posibles estados.
+          <p>En <strong>La Fábrica</strong>, el estado se compone de <strong>2 variables binarias</strong> que los sensores miden de cada caja:</p>
+          <table class="state-table">
+            <tr><td><strong>Apariencia</strong></td><td>Normal (0) o Alterada (1)</td></tr>
+            <tr><td><strong>Estabilidad</strong></td><td>Fija (0) o Vibrando (1)</td></tr>
+          </table>
+          <p>2 bits producen <strong>4 estados posibles</strong>: un espacio lo bastante pequeño para Q-Learning tabular, pero suficientemente rico para demostrar el aprendizaje.</p>
         </div>
       </div>
       <div class="card" data-concept="accion">
-        <span class="emoji">🎬</span>
         <h4>Acción</h4>
-        <p>Lo que el agente puede hacer: dejar pasar o descartar.</p>
+        <p>Lo que el agente puede hacer en cada paso. El espacio de acciones define los límites de su comportamiento.</p>
         <div class="detail">
-          <strong>Dejar pasar (0):</strong> el brazo permanece en reposo.<br>
-          <strong>Descartar (1):</strong> el brazo empuja la caja fuera de la cinta.
+          <p>En <strong>La Fábrica</strong>, el brazo robótico tiene <strong>2 acciones discretas</strong>:</p>
+          <table class="state-table">
+            <tr><td><strong>0 — Dejar pasar</strong></td><td>El brazo permanece en reposo. La caja continúa hacia el embalaje final.</td></tr>
+            <tr><td><strong>1 — Descartar</strong></td><td>El brazo se activa y empuja la caja fuera de la cinta hacia un contenedor de descarte.</td></tr>
+          </table>
+          <p>Dos acciones bastan para modelar un sistema de clasificación binaria industrial. La dificultad no está en la cantidad de acciones, sino en <strong>saber cuándo usar cada una</strong>.</p>
         </div>
       </div>
       <div class="card" data-concept="recompensa">
-        <span class="emoji">🏆</span>
         <h4>Recompensa</h4>
-        <p>La señal de feedback que guía el aprendizaje.</p>
+        <p>La señal numérica que el entorno devuelve tras cada acción. Es <strong>el único feedback</strong> que guía el aprendizaje del agente.</p>
         <div class="detail">
-          Es la señal que le dice al brazo si lo hizo bien (+10) o mal (-20).
-          Así aprende sin ser programado con reglas estáticas.
+          <p>En <strong>La Fábrica</strong>, el esquema de recompensas penaliza más los errores graves que los leves:</p>
+          <table class="reward-table">
+            <tr><td>Descartar caja defectuosa</td><td class="reward-pos">+10</td><td>Detección correcta</td></tr>
+            <tr><td>Dejar pasar caja normal</td><td class="reward-pos">+1</td><td>Flujo sin interrupciones</td></tr>
+            <tr><td>Descartar caja normal</td><td class="reward-neg">−10</td><td>Desperdicio de producto bueno</td></tr>
+            <tr><td>Dejar pasar caja defectuosa</td><td class="reward-crit">−20</td><td>Fallo crítico: anomalía al cliente</td></tr>
+          </table>
+          <p>El agente <strong>no recibe instrucciones</strong> sobre qué hacer. Solo recibe estos números. Aprende por prueba y error que descartar cajas alteradas maximiza su puntuación.</p>
         </div>
       </div>
       <div class="card" data-concept="politica">
-        <span class="emoji">🧠</span>
         <h4>Política</h4>
-        <p>La estrategia que mapea estados a acciones.</p>
+        <p>La estrategia que mapea cada estado a una acción: π(s) → a. Es el <strong>cerebro</strong> del agente.</p>
         <div class="detail">
-          Al inicio explora aleatoriamente (epsilon = 1.0). Conforme aprende,
-          explota lo que sabe: deriva hacia decisiones óptimas basadas en la Q-table.
+          <p>En <strong>La Fábrica</strong>, usamos una política <strong>epsilon-greedy</strong> sobre una Q-table de 4×2:</p>
+          <ul>
+            <li><strong>Fase de exploración</strong> (epsilon alto): el brazo actúa al azar para descubrir qué acciones dan mejor recompensa en cada estado.</li>
+            <li><strong>Fase de explotación</strong> (epsilon bajo): el brazo elige la acción con mayor valor Q aprendido.</li>
+            <li><strong>Decaimiento</strong>: epsilon se reduce un 0.5% por paso, pasando gradualmente de explorar a explotar.</li>
+          </ul>
+          <p>La política <strong>converge</strong> hacia: descartar cajas con apariencia alterada o que vibran, dejar pasar las normales y estables.</p>
         </div>
       </div>
     </div>
@@ -246,12 +265,22 @@
 
     <canvas id="simulator-canvas"></canvas>
 
+    <canvas id="chart-canvas"></canvas>
+    <div class="chart-legend">
+      <span class="legend-rl"></span> RL Agent
+      <span class="legend-rules"></span> Clasificador fijo
+    </div>
+
     <div class="controls-bar">
-      <button class="primary" id="btn-train">▶ Entrenar</button>
-      <button id="btn-pause">⏸ Pausa</button>
-      <button id="btn-step">⏭ Paso</button>
-      <button id="btn-speed">⏩ x2</button>
-      <button id="btn-reset">🔄 Reset</button>
+      <div class="mode-toggle">
+        <button id="btn-mode-rl" class="mode-btn active">RL Agent</button>
+        <button id="btn-mode-rules" class="mode-btn">Reglas Fijas</button>
+      </div>
+      <button class="primary" id="btn-train">Entrenar</button>
+      <button id="btn-pause">Pausa</button>
+      <button id="btn-step">Paso</button>
+      <button id="btn-speed">x2</button>
+      <button id="btn-reset">Reset</button>
     </div>
   </div>
 </section>

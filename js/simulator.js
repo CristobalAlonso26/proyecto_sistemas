@@ -1,4 +1,4 @@
-const App = window.App || {};
+var App = window.App || {};
 
 App.Box = class {
   constructor() {
@@ -6,7 +6,7 @@ App.Box = class {
     this.appearance = this.isDefective ? 1 : 0;
     this.isVibrating = this.isDefective && Math.random() < 0.7;
     this.stability = this.isVibrating ? 1 : 0;
-    this.color = this.isDefective ? '#d64045' : '#5a9e6f';
+    this.color = this.isDefective ? '#E08A8A' : '#93BFBB';
     this.shape = this.isDefective ? 'deformed' : 'normal';
     this.wobbleOffset = 0;
     this.wobbleSpeed = 1 + Math.random() * 2;
@@ -31,12 +31,10 @@ App.Box = class {
 App.Environment = class {
   constructor() {
     this.currentBox = null;
-    this.reward = 0;
   }
 
   generateBox() {
     this.currentBox = new App.Box();
-    this.reward = 0;
     return this.currentBox;
   }
 
@@ -44,14 +42,15 @@ App.Environment = class {
     const box = this.currentBox;
     if (!box) return { reward: 0, nextState: 0 };
 
+    let reward;
     if (action === 1) {
-      this.reward = box.isDefective ? 10 : -10;
+      reward = box.isDefective ? 10 : -10;
     } else {
-      this.reward = box.isDefective ? -20 : 1;
+      reward = box.isDefective ? -20 : 1;
     }
 
     const nextBox = this.generateBox();
-    return { reward: this.reward, nextState: nextBox.getState() };
+    return { reward: reward, nextState: nextBox.getState() };
   }
 };
 
@@ -83,13 +82,13 @@ App.Renderer = class {
 
   drawBackground() {
     const ctx = this.ctx;
-    ctx.fillStyle = '#1a1a2e';
+    ctx.fillStyle = '#2F3640';
     ctx.fillRect(0, 0, this.W, this.H);
 
-    ctx.fillStyle = '#2d2d44';
+    ctx.fillStyle = '#414956';
     ctx.fillRect(0, this.beltY - 45, this.W, 90);
 
-    ctx.strokeStyle = '#3d3d5c';
+    ctx.strokeStyle = '#536173';
     ctx.lineWidth = 2;
     for (let x = 0; x < this.W; x += 40) {
       ctx.beginPath();
@@ -100,7 +99,7 @@ App.Renderer = class {
       ctx.stroke();
     }
 
-    ctx.fillStyle = '#2a2a40';
+    ctx.fillStyle = '#363D48';
     ctx.fillRect(0, 0, this.W, this.beltY - 55);
     ctx.fillRect(0, this.beltY + 55, this.W, this.H - (this.beltY + 55));
   }
@@ -110,10 +109,10 @@ App.Renderer = class {
     const baseX = this.W * 0.52;
     const baseY = this.beltY - 70;
 
-    ctx.fillStyle = '#6b7b8d';
+    ctx.fillStyle = '#536173';
     ctx.fillRect(baseX - 6, baseY - 30, 12, 30);
 
-    ctx.fillStyle = '#4a5568';
+    ctx.fillStyle = '#4A5463';
     ctx.beginPath();
     ctx.arc(baseX, baseY, 8, 0, Math.PI * 2);
     ctx.fill();
@@ -131,20 +130,20 @@ App.Renderer = class {
     const tipX = baseX + Math.cos(armAngle) * armLen;
     const tipY = baseY + Math.sin(armAngle) * armLen;
 
-    ctx.strokeStyle = '#8899aa';
+    ctx.strokeStyle = '#93BFBB';
     ctx.lineWidth = 5;
     ctx.beginPath();
     ctx.moveTo(baseX, baseY);
     ctx.lineTo(tipX, tipY);
     ctx.stroke();
 
-    ctx.fillStyle = '#a0b0c0';
+    ctx.fillStyle = '#A8D5D1';
     ctx.beginPath();
     ctx.arc(tipX, tipY, 6, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.font = '10px monospace';
-    ctx.fillStyle = '#8899aa';
+    ctx.fillStyle = '#93BFBB';
     ctx.textAlign = 'center';
     if (this.armState === 'idle') ctx.fillText('ESPERANDO', baseX, baseY - 40);
     else if (this.armState === 'pushing') ctx.fillText('DESCARTANDO', baseX, baseY - 40);
@@ -183,10 +182,10 @@ App.Renderer = class {
     ctx.stroke();
 
     if (box.isVibrating) {
-      ctx.fillStyle = '#ffcc0033';
+      ctx.fillStyle = 'rgba(224,138,138,0.3)';
       ctx.font = '16px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('⚠', 0, -h / 2 - 4);
+      ctx.fillText('!', 0, -h / 2 - 4);
     }
 
     ctx.restore();
@@ -195,7 +194,7 @@ App.Renderer = class {
   drawDecisionZone() {
     const ctx = this.ctx;
     const x = this.W * 0.52;
-    ctx.strokeStyle = '#ffd70022';
+    ctx.strokeStyle = 'rgba(242,208,145,0.22)';
     ctx.setLineDash([5, 5]);
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -205,7 +204,7 @@ App.Renderer = class {
     ctx.setLineDash([]);
 
     if (this.showCursor) {
-      ctx.fillStyle = '#ffd700';
+      ctx.fillStyle = '#F2D091';
       ctx.font = '10px monospace';
       ctx.textAlign = 'center';
       ctx.beginPath();
@@ -239,10 +238,10 @@ App.Renderer = class {
       boxData.vy = -2;
       this.armState = 'pushing';
       this.armTimer = 0;
-      this.decisionEffect = { x: boxData.x, y: boxData.y, text: 'DESCARTAR', color: '#d64045' };
+      this.decisionEffect = { x: boxData.x, y: boxData.y, text: 'DESCARTAR', color: '#E08A8A' };
     } else {
       boxData.state = 'accepted';
-      this.decisionEffect = { x: boxData.x, y: boxData.y, text: 'PASAR', color: '#5a9e6f' };
+      this.decisionEffect = { x: boxData.x, y: boxData.y, text: 'PASAR', color: '#93BFBB' };
     }
   }
 
@@ -347,6 +346,7 @@ App.SimController = class {
     this.policy = new App.EpsilonGreedy();
     this.env = new App.Environment();
     this.renderer = new App.Renderer('simulator-canvas');
+    this.chart = new App.ChartRenderer('chart-canvas');
 
     this.episode = 1;
     this.totalReward = 0;
@@ -361,6 +361,12 @@ App.SimController = class {
     this.animFrameId = null;
     this.decisionMadeThisFrame = false;
 
+    this.mode = 'rl';
+    this.episodeRewardsRL = [];
+    this.episodeRewardsRules = [];
+    this.episodeRewardRules = 0;
+    this.errorsRules = 0;
+
     this.setupControls();
     this.startNewEpisode();
   }
@@ -369,24 +375,24 @@ App.SimController = class {
     document.getElementById('btn-train').addEventListener('click', () => {
       this.running = true;
       this.paused = false;
-      document.getElementById('btn-pause').textContent = '⏸ Pausa';
+      document.getElementById('btn-pause').textContent = 'Pausa';
       this.loop();
     });
     document.getElementById('btn-pause').addEventListener('click', () => {
       this.paused = !this.paused;
-      document.getElementById('btn-pause').textContent = this.paused ? '▶ Reanudar' : '⏸ Pausa';
+      document.getElementById('btn-pause').textContent = this.paused ? 'Reanudar' : 'Pausa';
       if (!this.paused) this.loop();
     });
     document.getElementById('btn-speed').addEventListener('click', () => {
       if (this.speed === 2) {
         this.speed = 8;
-        document.getElementById('btn-speed').textContent = '⏩ x8';
+        document.getElementById('btn-speed').textContent = 'x8';
       } else if (this.speed === 8) {
         this.speed = 20;
-        document.getElementById('btn-speed').textContent = '⏩ x20';
+        document.getElementById('btn-speed').textContent = 'x20';
       } else {
         this.speed = 2;
-        document.getElementById('btn-speed').textContent = '⏩ x2';
+        document.getElementById('btn-speed').textContent = 'x2';
       }
     });
     document.getElementById('btn-reset').addEventListener('click', () => {
@@ -397,10 +403,36 @@ App.SimController = class {
         this.singleStep();
       }
     });
+    document.getElementById('btn-mode-rl').addEventListener('click', () => {
+      this.mode = 'rl';
+      document.getElementById('btn-mode-rl').classList.add('active');
+      document.getElementById('btn-mode-rules').classList.remove('active');
+    });
+    document.getElementById('btn-mode-rules').addEventListener('click', () => {
+      this.mode = 'rules';
+      document.getElementById('btn-mode-rules').classList.add('active');
+      document.getElementById('btn-mode-rl').classList.remove('active');
+    });
+  }
+
+  ruleBasedAction(box) {
+    if (box.appearance === 1 || box.stability === 1) return 1;
+    return 0;
+  }
+
+  computeRuleReward(boxData) {
+    const box = boxData.box;
+    const action = this.ruleBasedAction(box);
+    if (action === 1) {
+      return box.isDefective ? 10 : -10;
+    } else {
+      return box.isDefective ? -20 : 1;
+    }
   }
 
   startNewEpisode() {
     this.episodeReward = 0;
+    this.episodeRewardRules = 0;
     this.stepsThisEpisode = 0;
     this.renderer.clear();
     const box = this.env.generateBox();
@@ -414,14 +446,22 @@ App.SimController = class {
     this.decisionMadeThisFrame = true;
 
     const state = boxData.box.getState();
-    const action = this.policy.selectAction(state, this.qtable);
 
-    const result = this.env.executeAction(action);
+    let action;
+    if (this.mode === 'rules') {
+      action = this.ruleBasedAction(boxData.box);
+    } else {
+      action = this.policy.selectAction(state, this.qtable);
+    }
+
+    var result = this.env.executeAction(action);
     this.renderer.animateDecision(boxData, action);
 
-    this.qtable.update(state, action, result.reward, result.nextState);
+    if (this.mode === 'rl') {
+      this.qtable.update(state, action, result.reward, result.nextState);
+      this.policy.decayEpsilon();
+    }
 
-    this.policy.decayEpsilon();
     this.totalReward += result.reward;
     this.episodeReward += result.reward;
     this.totalSteps++;
@@ -429,10 +469,23 @@ App.SimController = class {
 
     if (result.reward < 0) this.errors++;
 
+    const ruleReward = this.computeRuleReward(boxData);
+    this.episodeRewardRules += ruleReward;
+    if (ruleReward < 0) this.errorsRules++;
+
     if (this.stepsThisEpisode >= this.EPISODE_LENGTH) {
+      this.episodeRewardsRL.push(this.episodeReward);
+      this.episodeRewardsRules.push(this.episodeRewardRules);
+      this.chart.draw(this.episodeRewardsRL, this.episodeRewardsRules);
       this.episode++;
       this.errors = 0;
-      this.startNewEpisode();
+      this.errorsRules = 0;
+      this.episodeReward = 0;
+      this.episodeRewardRules = 0;
+      this.stepsThisEpisode = 0;
+      this.renderer.clear();
+      const newBox = this.env.generateBox();
+      this.renderer.addBox(newBox);
     } else {
       const nextBox = this.env.currentBox;
       this.renderer.addBox(nextBox);
@@ -475,14 +528,22 @@ App.SimController = class {
   }
 
   updateUI() {
-    document.getElementById('score').textContent = Math.round(this.episodeReward);
-    document.getElementById('errors').textContent = this.errors;
-    document.getElementById('episode').textContent = this.episode;
-    document.getElementById('epsilon').textContent = this.policy.epsilon.toFixed(3);
-    document.getElementById('total-steps').textContent = this.totalSteps;
+    const scoreEl = document.getElementById('score');
+    const errorsEl = document.getElementById('errors');
+    const episodeEl = document.getElementById('episode');
+    const epsilonEl = document.getElementById('epsilon');
+    const stepsEl = document.getElementById('total-steps');
+    if (!scoreEl || !errorsEl || !episodeEl || !epsilonEl || !stepsEl) return;
 
-    document.getElementById('score').className =
-      this.episodeReward >= 0 ? 'metric-value positive' : 'metric-value negative';
+    scoreEl.textContent = Math.round(this.episodeReward);
+    errorsEl.textContent = this.errors;
+    episodeEl.textContent = this.episode;
+    epsilonEl.textContent = this.policy.epsilon.toFixed(3);
+    stepsEl.textContent = this.totalSteps;
+
+    scoreEl.className = this.episodeReward >= 0
+      ? 'metric-value positive'
+      : 'metric-value negative';
   }
 
   reset() {
@@ -492,14 +553,132 @@ App.SimController = class {
     this.episode = 1;
     this.totalReward = 0;
     this.episodeReward = 0;
+    this.episodeRewardRules = 0;
     this.errors = 0;
+    this.errorsRules = 0;
     this.totalSteps = 0;
     this.speed = 2;
+    this.episodeRewardsRL = [];
+    this.episodeRewardsRules = [];
     this.qtable.reset();
     this.policy.reset();
     this.renderer.clear();
-    document.getElementById('btn-pause').textContent = '⏸ Pausa';
-    document.getElementById('btn-speed').textContent = '⏩ x2';
+    this.chart.clear();
+    document.getElementById('btn-pause').textContent = 'Pausa';
+    document.getElementById('btn-speed').textContent = 'x2';
     this.startNewEpisode();
+  }
+};
+
+App.ChartRenderer = class {
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext('2d');
+    this.W = this.canvas.width;
+    this.H = this.canvas.height;
+  }
+
+  draw(rlData, rulesData) {
+    var parentW = this.canvas.parentElement.clientWidth;
+    if (!parentW) parentW = 960;
+    this.canvas.width = parentW;
+    this.canvas.height = 160;
+    this.W = this.canvas.width;
+    this.H = this.canvas.height;
+
+    var ctx = this.ctx;
+    var pad = { top: 20, right: 20, bottom: 30, left: 50 };
+    var w = this.W - pad.left - pad.right;
+    var h = this.H - pad.top - pad.bottom;
+    if (w <= 0 || h <= 0) return;
+
+    ctx.fillStyle = '#2F3640';
+    ctx.fillRect(0, 0, this.W, this.H);
+
+    ctx.strokeStyle = '#536173';
+    ctx.lineWidth = 1;
+    for (var i = 0; i <= 4; i++) {
+      var gridY = pad.top + (h / 4) * i;
+      ctx.beginPath();
+      ctx.moveTo(pad.left, gridY);
+      ctx.lineTo(this.W - pad.right, gridY);
+      ctx.stroke();
+    }
+
+    var allData = rlData.concat(rulesData);
+    var maxVal = Math.max.apply(null, allData.concat([1]));
+    var minVal = Math.min.apply(null, allData.concat([0]));
+    var range = Math.max(Math.abs(maxVal), Math.abs(minVal), 50);
+    var yMin = -range;
+    var yMax = range;
+
+    ctx.fillStyle = '#95A5A5';
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'right';
+    for (var i = 0; i <= 4; i++) {
+      var val = yMin + ((yMax - yMin) / 4) * i;
+      var labelY = pad.top + (h / 4) * (4 - i);
+      ctx.fillText(Math.round(val), pad.left - 5, labelY + 3);
+    }
+
+    if (rlData.length >= 2) {
+      ctx.strokeStyle = '#F2D091';
+      ctx.setLineDash([]);
+      ctx.lineWidth = 2;
+      this.drawLine(rlData, pad, w, h, yMin, yMax);
+      this.drawDots(rlData, pad, w, h, yMin, yMax, '#F2D091');
+    }
+
+    if (rulesData.length >= 2) {
+      ctx.strokeStyle = '#95A5A5';
+      ctx.setLineDash([4, 4]);
+      ctx.lineWidth = 2;
+      this.drawLine(rulesData, pad, w, h, yMin, yMax);
+      this.drawDots(rulesData, pad, w, h, yMin, yMax, '#95A5A5');
+      ctx.setLineDash([]);
+    }
+
+    ctx.fillStyle = '#95A5A5';
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'center';
+    var maxEp = Math.max(rlData.length, 1);
+    var step = Math.max(1, Math.floor(maxEp / 8));
+    for (var i = 1; i <= maxEp; i += step) {
+      var x = pad.left + (w * (i - 1)) / Math.max(maxEp - 1, 1);
+      ctx.fillText(i, x, this.H - 8);
+    }
+    ctx.fillText('Episodio', this.W / 2, this.H - 2);
+  }
+
+  drawLine(data, pad, w, h, yMin, yMax) {
+    var ctx = this.ctx;
+    if (data.length < 2) return;
+    ctx.beginPath();
+    for (var i = 0; i < data.length; i++) {
+      var x = pad.left + (w * i) / Math.max(data.length - 1, 1);
+      var y = pad.top + h * (1 - (data[i] - yMin) / (yMax - yMin));
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  drawDots(data, pad, w, h, yMin, yMax, color) {
+    var ctx = this.ctx;
+    ctx.fillStyle = color;
+    for (var i = 0; i < data.length; i++) {
+      var x = pad.left + (w * i) / Math.max(data.length - 1, 1);
+      var y = pad.top + h * (1 - (data[i] - yMin) / (yMax - yMin));
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  clear() {
+    if (this.canvas) {
+      this.canvas.width = this.canvas.parentElement.clientWidth || 960;
+      this.canvas.height = 160;
+    }
   }
 };

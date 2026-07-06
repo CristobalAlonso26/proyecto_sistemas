@@ -1,4 +1,4 @@
-const App = window.App || {};
+var App = window.App || {};
 
 App.QTable = class {
   constructor(numStates, numActions, learningRate = 0.1, discount = 0.95) {

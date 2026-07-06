@@ -1,6 +1,78 @@
 (function () {
-  var sim = new App.SimController();
-  App.controller = sim;
+  function closeModal() {
+    var overlay = document.querySelector('.modal-overlay');
+    if (overlay) {
+      overlay.remove();
+      document.body.style.overflow = '';
+    }
+  }
+
+  function openModal(card) {
+    closeModal();
+
+    var emojiEl = card.querySelector('.emoji');
+    var emoji = emojiEl ? emojiEl.textContent : '';
+    var title = card.querySelector('h4').textContent;
+    var tagline = card.querySelector('p').textContent;
+    var detail = card.querySelector('.detail');
+
+    var overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+
+    var content = document.createElement('div');
+    content.className = 'modal-content';
+
+    var closeBtn = document.createElement('button');
+    closeBtn.className = 'modal-close';
+    closeBtn.innerHTML = '&times;';
+    closeBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      closeModal();
+    });
+
+    content.appendChild(closeBtn);
+
+    if (emoji) {
+      var emojiSpan = document.createElement('span');
+      emojiSpan.className = 'modal-emoji';
+      emojiSpan.textContent = emoji;
+      content.appendChild(emojiSpan);
+    }
+
+    var titleEl = document.createElement('h3');
+    titleEl.textContent = title;
+    content.appendChild(titleEl);
+
+    var tagEl = document.createElement('p');
+    tagEl.className = 'modal-tagline';
+    tagEl.textContent = tagline;
+    content.appendChild(tagEl);
+
+    var detailEl = document.createElement('div');
+    detailEl.className = 'modal-detail';
+    detailEl.innerHTML = detail.innerHTML;
+    content.appendChild(detailEl);
+
+    overlay.appendChild(content);
+
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) closeModal();
+    });
+
+    document.body.style.overflow = 'hidden';
+    document.body.appendChild(overlay);
+  }
+
+  document.querySelectorAll('#concept-cards .card').forEach(function (card) {
+    card.addEventListener('click', function (e) {
+      e.stopPropagation();
+      openModal(card);
+    });
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeModal();
+  });
 
   document.querySelectorAll('.nav-links a').forEach(function (link) {
     link.addEventListener('click', function () {
@@ -26,11 +98,8 @@
   );
   sections.forEach(function (s) { observer.observe(s); });
 
-  document.querySelectorAll('#concept-cards .card').forEach(function (card) {
-    card.addEventListener('click', function () {
-      card.classList.toggle('expanded');
-    });
-  });
+  var sim = new App.SimController();
+  App.controller = sim;
 
   var stateLabels = [
     'Normal + Fija',
@@ -42,6 +111,7 @@
   function updateQTable() {
     var table = sim.qtable.table;
     var tbody = document.getElementById('qtable-body');
+    if (!tbody) return;
     tbody.innerHTML = '';
     for (var s = 0; s < table.length; s++) {
       var tr = document.createElement('tr');
