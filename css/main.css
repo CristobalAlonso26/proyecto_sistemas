@@ -841,6 +841,29 @@ button.primary {
   color: var(--accent);
 }
 
+.live-qtable td input {
+  width: 50px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-align: center;
+  padding: 0.15rem 0;
+  border-radius: 3px;
+  transition: border-color 0.15s;
+}
+
+.live-qtable td input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(242,208,145,0.08);
+}
+
+.live-qtable td input:hover {
+  border-color: var(--border);
+}
+
 /* Mode indicator */
 .mode-indicator {
   text-align: center;

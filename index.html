@@ -26,8 +26,10 @@
   <div class="container">
     <h1>Aprendizaje por Refuerzo para<br>Detección de Anomalías</h1>
     <p class="subtitle">
-      Un agente inteligente aprende a clasificar productos en una cinta transportadora:
-      distinguir cajas normales de defectuosas mediante prueba y error.
+      Recurso educativo interactivo que enseña los fundamentos del Aprendizaje
+      por Refuerzo mediante visualizaciones, simulaciones y un caso práctico:
+      un agente inteligente que aprende a clasificar productos en una cinta
+      transportadora mediante prueba y error.
     </p>
     <a href="#simulation" class="cta">Ver simulación</a>
   </div>
@@ -217,21 +219,14 @@
       <li>Decaer <strong>&epsilon;</strong> para reducir exploración. Repetir desde el paso 2 hasta convergencia.</li>
     </ol>
 
-    <h3 style="margin-top:2rem">Q-Table editable</h3>
-    <p>Modifica los valores manualmente para ver cómo cambia el comportamiento del agente:</p>
-    <div class="qtable-grid" id="qtable-container">
-      <table>
-        <thead>
-          <tr>
-            <th>Estado</th>
-            <th>Dejar pasar (Q0)</th>
-            <th>Descartar (Q1)</th>
-          </tr>
-        </thead>
-        <tbody id="qtable-body">
-        </tbody>
-      </table>
-    </div>
+    <h3 style="margin-top:2rem">Visualización de la Q-Table</h3>
+    <p>
+      La Q-Table puede consultarse en vivo durante la simulación, en el panel
+      lateral de la <a href="#simulation" style="color:var(--accent)">Sección 6</a>.
+      Allí verás cómo los valores Q evolucionan con cada paso de entrenamiento,
+      y podrás editarlos manualmente para experimentar cómo afectan las decisiones
+      del agente.
+    </p>
   </div>
 </section>
 
@@ -334,7 +329,8 @@
         </div>
       </div>
       <div class="sim-right">
-        <h4 style="color:var(--accent);margin-bottom:0.5rem">Q-Table en vivo</h4>
+        <h4 style="color:var(--accent);margin-bottom:0.2rem">Q-Table</h4>
+        <p style="font-size:0.65rem;color:var(--text-secondary);margin-bottom:0.5rem;line-height:1.4">Pausa para editar valores. Usa <strong>Paso</strong> para ver el efecto de tus cambios.</p>
         <div class="live-qtable" id="live-qtable">
           <table>
             <thead>
@@ -379,6 +375,7 @@
       <li>El Aprendizaje por Refuerzo es una herramienta poderosa para problemas donde las reglas de decisión no son triviales o el entorno cambia con el tiempo.</li>
       <li>Q-Learning tabular converge rápidamente en espacios de estado pequeños como el de La Fábrica (4 estados × 2 acciones).</li>
       <li>La visualización interactiva demuestra el proceso de aprendizaje mejor que cualquier explicación estática.</li>
+      <li>El uso de una política Epsilon-greedy demostró ser fundamental para el éxito del modelo. Al permitir que el brazo robótico explore acciones aleatorias al inicio, se evitó que el agente se estancara tomando decisiones subóptimas, logrando converger hacia la política correcta.</li>
     </ul>
 
     <h3 style="margin-top:2rem">Limitaciones</h3>
@@ -386,12 +383,15 @@
       <li>La simulación asume un entorno ideal sin ruido de sensor ni fallos del brazo robótico.</li>
       <li>Q-Learning tabular no escala a problemas con espacios de estado continuos (requeriría Deep Q-Networks).</li>
       <li>El modelo de cajas es binario (normal/defectuoso), simplificando la complejidad real del control de calidad.</li>
+      <li>El diseño de la función de recompensa (Reward Shaping) es estático (+10, -20). En un entorno industrial real, definir estos valores es complejo y requiere un análisis profundo de los costos de negocio asociados a los falsos positivos y falsos negativos.</li>
     </ul>
 
     <h3 style="margin-top:2rem">Referencias</h3>
     <ul>
       <li>Sutton, R. S., &amp; Barto, A. G. (2018). <em>Reinforcement Learning: An Introduction</em>. MIT Press.</li>
       <li>Watkins, C. J. C. H., &amp; Dayan, P. (1992). Q-Learning. <em>Machine Learning</em>, 8(3), 279–292.</li>
+      <li>Benaddi, H., et al. (2022). <em>Anomaly Detection in Industrial IoT Using Distributional Reinforcement Learning and Generative Adversarial Networks</em>. Sensors, 22(21), 8085. MDPI.</li>
+      <li>Al-Abassi, A., et al. (2022). <em>Deep Reinforcement Learning for Anomaly Detection: A Systematic Review</em>. Kent Academic Repository.</li>
     </ul>
   </div>
 </section>

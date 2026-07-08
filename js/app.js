@@ -108,24 +108,28 @@
     'Alterada + Vibrando',
   ];
 
-  function updateQTable() {
-    var table = sim.qtable.table;
-    var tbody = document.getElementById('qtable-body');
+  var qtableInitialized = false;
+
+  function initQTable() {
+    var tbody = document.getElementById('live-qtable-body');
     if (!tbody) return;
+    var table = sim.qtable.table;
     tbody.innerHTML = '';
     for (var s = 0; s < table.length; s++) {
       var tr = document.createElement('tr');
       var tdLabel = document.createElement('td');
       tdLabel.textContent = stateLabels[s];
-      tdLabel.style.cssText = 'font-family: var(--font-mono); padding: 0.5rem 1rem;';
       tr.appendChild(tdLabel);
-
       for (var a = 0; a < table[s].length; a++) {
         var td = document.createElement('td');
+        td.setAttribute('data-state', s);
+        td.setAttribute('data-action', a);
         var input = document.createElement('input');
         input.type = 'number';
         input.step = '0.1';
-        input.value = Math.round(table[s][a] * 10) / 10;
+        input.setAttribute('data-state', s);
+        input.setAttribute('data-action', a);
+        input.value = table[s][a].toFixed(1);
         (function (state, action) {
           input.addEventListener('change', function () {
             sim.qtable.table[state][action] = parseFloat(this.value) || 0;
@@ -136,62 +140,45 @@
       }
       tbody.appendChild(tr);
     }
+    qtableInitialized = true;
   }
 
-  setInterval(function () {
-    if (sim.running || sim.totalSteps > 0) {
-      updateQTable();
-      updateLiveQTable();
-    }
-  }, 800);
-
-  function updateLiveQTable() {
+  function refreshQTable() {
     var tbody = document.getElementById('live-qtable-body');
     if (!tbody) return;
+    if (!qtableInitialized) initQTable();
     var table = sim.qtable.table;
-    var rows = tbody.querySelectorAll('tr');
+    var inputs = tbody.querySelectorAll('input[data-state]');
 
-    if (rows.length === 0) {
-      for (var s = 0; s < table.length; s++) {
-        var tr = document.createElement('tr');
-        var tdLabel = document.createElement('td');
-        tdLabel.textContent = stateLabels[s];
-        tr.appendChild(tdLabel);
-        for (var a = 0; a < table[s].length; a++) {
-          var td = document.createElement('td');
-          td.setAttribute('data-state', s);
-          td.setAttribute('data-action', a);
-          td.textContent = table[s][a].toFixed(1);
-          tr.appendChild(td);
-        }
-        tbody.appendChild(tr);
+    for (var i = 0; i < inputs.length; i++) {
+      var inp = inputs[i];
+      var s = parseInt(inp.getAttribute('data-state'));
+      var a = parseInt(inp.getAttribute('data-action'));
+      if (document.activeElement !== inp) {
+        inp.value = table[s][a].toFixed(1);
       }
-      rows = tbody.querySelectorAll('tr');
-    }
-
-    for (var s = 0; s < Math.min(table.length, rows.length); s++) {
-      var cells = rows[s].querySelectorAll('td[data-state]');
-      for (var a = 0; a < cells.length; a++) {
-        cells[a].textContent = table[s][a].toFixed(1);
-        cells[a].classList.remove('flash');
-        if (s === sim.lastUpdatedState && a === sim.lastUpdatedAction) {
-          cells[a].classList.add('flash');
-        }
+      var td = inp.parentElement;
+      td.classList.remove('flash');
+      if (s === sim.lastUpdatedState && a === sim.lastUpdatedAction) {
+        td.classList.add('flash');
       }
     }
 
     if (sim.lastUpdatedState >= 0) {
-      setTimeout(function () {
-        var allCells = tbody.querySelectorAll('td.flash');
-        for (var c = 0; c < allCells.length; c++) {
-          allCells[c].classList.remove('flash');
-        }
-      }, 400);
       sim.lastUpdatedState = -1;
       sim.lastUpdatedAction = -1;
     }
   }
 
-  updateQTable();
-  updateLiveQTable();
+  setInterval(function () {
+    if (sim.running || sim.totalSteps > 0) {
+      refreshQTable();
+    }
+  }, 800);
+
+  initQTable();
+
+  document.getElementById('btn-reset').addEventListener('click', function () {
+    setTimeout(refreshQTable, 100);
+  });
 })();
