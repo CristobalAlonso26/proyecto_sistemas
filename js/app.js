@@ -141,8 +141,57 @@
   setInterval(function () {
     if (sim.running || sim.totalSteps > 0) {
       updateQTable();
+      updateLiveQTable();
     }
-  }, 1000);
+  }, 800);
+
+  function updateLiveQTable() {
+    var tbody = document.getElementById('live-qtable-body');
+    if (!tbody) return;
+    var table = sim.qtable.table;
+    var rows = tbody.querySelectorAll('tr');
+
+    if (rows.length === 0) {
+      for (var s = 0; s < table.length; s++) {
+        var tr = document.createElement('tr');
+        var tdLabel = document.createElement('td');
+        tdLabel.textContent = stateLabels[s];
+        tr.appendChild(tdLabel);
+        for (var a = 0; a < table[s].length; a++) {
+          var td = document.createElement('td');
+          td.setAttribute('data-state', s);
+          td.setAttribute('data-action', a);
+          td.textContent = table[s][a].toFixed(1);
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+      rows = tbody.querySelectorAll('tr');
+    }
+
+    for (var s = 0; s < Math.min(table.length, rows.length); s++) {
+      var cells = rows[s].querySelectorAll('td[data-state]');
+      for (var a = 0; a < cells.length; a++) {
+        cells[a].textContent = table[s][a].toFixed(1);
+        cells[a].classList.remove('flash');
+        if (s === sim.lastUpdatedState && a === sim.lastUpdatedAction) {
+          cells[a].classList.add('flash');
+        }
+      }
+    }
+
+    if (sim.lastUpdatedState >= 0) {
+      setTimeout(function () {
+        var allCells = tbody.querySelectorAll('td.flash');
+        for (var c = 0; c < allCells.length; c++) {
+          allCells[c].classList.remove('flash');
+        }
+      }, 400);
+      sim.lastUpdatedState = -1;
+      sim.lastUpdatedAction = -1;
+    }
+  }
 
   updateQTable();
+  updateLiveQTable();
 })();

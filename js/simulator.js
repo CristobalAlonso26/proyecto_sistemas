@@ -251,6 +251,7 @@ App.Renderer = class {
 
     for (let i = this.boxes.length - 1; i >= 0; i--) {
       const bd = this.boxes[i];
+      if (!bd) continue;
       bd.box.wobbleOffset += 0.05 * bd.box.wobbleSpeed;
 
       if (bd.state === 'entering') {
@@ -366,6 +367,9 @@ App.SimController = class {
     this.episodeRewardsRules = [];
     this.episodeRewardRules = 0;
     this.errorsRules = 0;
+    this.lastUpdatedState = -1;
+    this.lastUpdatedAction = -1;
+    this.episodeOverlayTimer = null;
 
     this.setupControls();
     this.startNewEpisode();
@@ -407,11 +411,15 @@ App.SimController = class {
       this.mode = 'rl';
       document.getElementById('btn-mode-rl').classList.add('active');
       document.getElementById('btn-mode-rules').classList.remove('active');
+      var ind = document.getElementById('mode-indicator');
+      if (ind) { ind.textContent = 'Entrenando agente RL'; ind.className = 'mode-indicator rl-mode'; }
     });
     document.getElementById('btn-mode-rules').addEventListener('click', () => {
       this.mode = 'rules';
       document.getElementById('btn-mode-rules').classList.add('active');
       document.getElementById('btn-mode-rl').classList.remove('active');
+      var ind = document.getElementById('mode-indicator');
+      if (ind) { ind.textContent = 'Clasificador por reglas fijas'; ind.className = 'mode-indicator rules-mode'; }
     });
   }
 
@@ -459,6 +467,8 @@ App.SimController = class {
 
     if (this.mode === 'rl') {
       this.qtable.update(state, action, result.reward, result.nextState);
+      this.lastUpdatedState = state;
+      this.lastUpdatedAction = action;
       this.policy.decayEpsilon();
     }
 
@@ -474,9 +484,11 @@ App.SimController = class {
     if (ruleReward < 0) this.errorsRules++;
 
     if (this.stepsThisEpisode >= this.EPISODE_LENGTH) {
+      var epScore = this.episodeReward;
       this.episodeRewardsRL.push(this.episodeReward);
       this.episodeRewardsRules.push(this.episodeRewardRules);
       this.chart.draw(this.episodeRewardsRL, this.episodeRewardsRules);
+      var prevEpisode = this.episode;
       this.episode++;
       this.errors = 0;
       this.errorsRules = 0;
@@ -486,6 +498,7 @@ App.SimController = class {
       this.renderer.clear();
       const newBox = this.env.generateBox();
       this.renderer.addBox(newBox);
+      this.showEpisodeOverlay(prevEpisode, epScore);
     } else {
       const nextBox = this.env.currentBox;
       this.renderer.addBox(nextBox);
@@ -496,19 +509,18 @@ App.SimController = class {
 
   singleStep() {
     const decisionX = this.renderer.W * 0.52;
-    for (const bd of this.renderer.boxes) {
+    for (var i = 0; i < this.renderer.boxes.length; i++) {
+      var bd = this.renderer.boxes[i];
       if (!bd.decided && bd.state === 'entering') {
         bd.x = decisionX;
         this.decisionMadeThisFrame = false;
         this.handleDecision(bd);
-        this.renderer.update();
         this.renderer.draw();
         return;
       }
     }
-    const box = this.env.generateBox();
+    var box = this.env.generateBox();
     this.renderer.addBox(box);
-    this.renderer.update();
     this.renderer.draw();
   }
 
@@ -544,6 +556,24 @@ App.SimController = class {
     scoreEl.className = this.episodeReward >= 0
       ? 'metric-value positive'
       : 'metric-value negative';
+  }
+
+  showEpisodeOverlay(epNum, score) {
+    var overlay = document.getElementById('episode-overlay');
+    if (!overlay) return;
+    var titleEl = overlay.querySelector('.episode-overlay-title');
+    var scoreEl = overlay.querySelector('.episode-overlay-score');
+    if (!titleEl || !scoreEl) return;
+
+    titleEl.textContent = 'Episodio ' + epNum + ' completado';
+    scoreEl.textContent = (score >= 0 ? '+' : '') + Math.round(score);
+    scoreEl.className = 'episode-overlay-score ' + (score >= 0 ? 'positive' : 'negative');
+    overlay.classList.add('show');
+
+    if (this.episodeOverlayTimer) clearTimeout(this.episodeOverlayTimer);
+    this.episodeOverlayTimer = setTimeout(function () {
+      overlay.classList.remove('show');
+    }, 1200);
   }
 
   reset() {
