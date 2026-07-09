@@ -1,3 +1,6 @@
+/* RL Factory — Tema oscuro industrial. Paleta: dorado (acento), teal (éxito), rojo (error). */
+
+/* Variables globales de diseño */
 :root {
   --bg-primary: #2F3640;
   --bg-secondary: #363D48;
@@ -76,7 +79,7 @@ p, li {
   line-height: 1.7;
 }
 
-/* Navigation */
+/* Barra de navegación fija superior con logo y enlaces */
 nav {
   position: fixed;
   top: 0;
@@ -117,7 +120,7 @@ nav .nav-links a.active {
   color: var(--accent);
 }
 
-/* Hero section */
+/* Sección Hero: título principal y CTA con gradiente de fondo */
 #hero {
   text-align: center;
   background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
@@ -146,13 +149,7 @@ nav .nav-links a.active {
   box-shadow: 0 4px 20px var(--accent-dim);
 }
 
-#hero .meta {
-  margin-top: 1.5rem;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-}
-
-/* Cards grid */
+/* Cuadrícula de tarjetas de conceptos (6 tarjetas interactivas) */
 .cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -199,7 +196,7 @@ nav .nav-links a.active {
   margin-bottom: 0.5rem;
 }
 
-/* Modal overlay */
+/* Modal: overlay + contenido con animación de entrada */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -297,44 +294,11 @@ nav .nav-links a.active {
   font-size: 0.7rem;
 }
 
-.card .detail ul {
-  list-style: none;
-  padding-left: 0;
-  margin: 0.4rem 0;
-}
-
-.card .detail ul li::before {
-  content: '▸ ';
-  color: var(--accent);
-  font-size: 0.7rem;
-}
-
-.state-table,
-.reward-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 0.5rem 0;
-  font-size: 0.8rem;
-}
-
-.state-table td,
-.reward-table td {
-  padding: 0.3rem 0.5rem;
-  border: 1px solid var(--border);
-  vertical-align: top;
-  color: var(--text-secondary);
-}
-
-.state-table td:first-child,
-.reward-table td:first-child {
-  color: var(--text-primary);
-}
-
 .reward-pos { color: var(--green); font-weight: bold; }
 .reward-neg { color: var(--red); font-weight: bold; }
 .reward-crit { color: var(--red); font-weight: bold; }
 
-/* Simulator section */
+/* Sección de simulación: canvas, métricas, controles y Q-Table */
 #simulation {
   padding-top: 5rem;
 }
@@ -480,7 +444,7 @@ button.primary {
   font-weight: bold;
 }
 
-/* Algorithm section */
+/* Sección Algoritmo: pasos numerados del pseudo-código Q-Learning */
 .algo-steps {
   counter-reset: step;
   list-style: none;
@@ -513,7 +477,7 @@ button.primary {
   font-size: 0.85rem;
 }
 
-/* Case study */
+/* Sección Caso Práctico: tablas de modelado y recompensas */
 .case-table {
   width: 100%;
   border-collapse: collapse;
@@ -544,46 +508,7 @@ button.primary {
 .case-table td.reward-neg { color: var(--red); font-weight: bold; }
 .case-table td.reward-crit { color: var(--red); font-weight: bold; }
 
-/* Q-table viz */
-.qtable-grid {
-  overflow-x: auto;
-}
-
-.qtable-grid table {
-  border-collapse: collapse;
-  margin: 0 auto;
-}
-
-.qtable-grid th {
-  background: var(--bg-card);
-  color: var(--accent);
-  padding: 0.5rem 1rem;
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-}
-
-.qtable-grid td {
-  padding: 0.4rem;
-  border: 1px solid var(--border);
-  text-align: center;
-}
-
-.qtable-grid td input {
-  width: 55px;
-  background: transparent;
-  border: none;
-  color: var(--text-primary);
-  font-family: var(--font-mono);
-  font-size: 0.9rem;
-  text-align: center;
-}
-
-.qtable-grid td input:focus {
-  outline: 2px solid var(--accent);
-  border-radius: 3px;
-}
-
-/* Conclusion */
+/* Sección Conclusiones: listas con viñetas personalizadas */
 #conclusion ul {
   list-style: none;
   padding-left: 0;
@@ -595,7 +520,7 @@ button.primary {
   color: var(--accent);
 }
 
-/* RL Diagram */
+/* Diagrama RL: ciclo Agente ↔ Entorno con flechas animadas */
 .rl-diagram {
   max-width: 700px;
   margin: 0 auto;
@@ -644,7 +569,7 @@ button.primary {
   font-family: var(--font-mono);
 }
 
-/* Arrows column */
+/* Columna de flechas entre Agente y Entorno */
 .rl-arrows-col {
   display: flex;
   flex-direction: column;
@@ -655,7 +580,7 @@ button.primary {
   min-width: 120px;
 }
 
-/* Top arrow: Agent → Environment */
+/* Flecha superior: Agente → Entorno (línea punteada animada) */
 .rl-arrow {
   display: flex;
   align-items: center;
@@ -778,7 +703,7 @@ button.primary {
   color: var(--accent);
 }
 
-/* Simulator two-column layout */
+/* Layout de dos columnas: canvas a la izquierda, Q-Table a la derecha */
 .sim-two-col {
   display: grid;
   grid-template-columns: 1fr 240px;
@@ -800,7 +725,7 @@ button.primary {
   padding-top: 0;
 }
 
-/* Live Q-Table */
+/* Q-Table en vivo: tabla con inputs editables y efecto flash al actualizar */
 .live-qtable {
   overflow: hidden;
   border: 1px solid var(--border);
@@ -864,7 +789,7 @@ button.primary {
   border-color: var(--border);
 }
 
-/* Mode indicator */
+/* Indicador de modo actual: RL (dorado) o Reglas Fijas (gris) */
 .mode-indicator {
   text-align: center;
   padding: 0.4rem 0.8rem;
@@ -886,7 +811,7 @@ button.primary {
   background: var(--bg-card);
 }
 
-/* Episode overlay */
+/* Overlay de fin de episodio: aparece y desaparece con transición */
 .episode-overlay {
   position: absolute;
   top: 0;
@@ -931,6 +856,7 @@ button.primary {
 
 .episode-overlay-score.positive { color: var(--green); }
 .episode-overlay-score.negative { color: var(--red); }
+/* Responsive: tablet (≤768px) */
 @media (max-width: 768px) {
   h1 { font-size: 2rem; }
   h2 { font-size: 1.5rem; }
@@ -947,6 +873,7 @@ button.primary {
   .rl-arrow-label { font-size: 0.55rem; }
 }
 
+/* Responsive: móvil (≤480px) */
 @media (max-width: 480px) {
   h1 { font-size: 1.5rem; }
   nav { flex-direction: column; gap: 0.3rem; }

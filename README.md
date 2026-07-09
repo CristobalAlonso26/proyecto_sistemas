@@ -24,8 +24,6 @@ Luego visitar http://localhost:8000
 │   ├── qlearning.js    # Motor RL: Q-Table + política Epsilon-Greedy
 │   ├── simulator.js    # Entorno, canvas, renderizador, controlador y gráfica
 │   └── app.js          # Navegación, modales de conceptos, Q-table en vivo
-├── assets/
-│   └── images/         # Diagramas e imágenes
 └── README.md
 ```
 
@@ -53,3 +51,7 @@ Luego visitar http://localhost:8000
 ## Tecnología
 
 HTML5 + CSS3 + JavaScript vanilla (sin dependencias externas).
+
+## Autor
+
+Cristobal Ramos

@@ -1,74 +1,84 @@
-var App = window.App || {};
+// Simulación de La Fábrica: cinta transportadora, brazo robótico y gráfica de recompensas.
+// Contiene las clases Box, Environment, Renderer, SimController y ChartRenderer.
+
+// Box: modelo de una caja en la cinta transportadora
 
 App.Box = class {
   constructor() {
+    // 35% de probabilidad de ser defectuosa
     this.isDefective = Math.random() < 0.35;
+    // Apariencia: 0 = normal (verde), 1 = alterada (rojiza)
     this.appearance = this.isDefective ? 1 : 0;
+    // Vibración: 70% de las defectuosas vibran; las normales nunca
     this.isVibrating = this.isDefective && Math.random() < 0.7;
     this.stability = this.isVibrating ? 1 : 0;
     this.color = this.isDefective ? '#E08A8A' : '#93BFBB';
     this.shape = this.isDefective ? 'deformed' : 'normal';
+    // Parámetros para la animación de temblor
     this.wobbleOffset = 0;
     this.wobbleSpeed = 1 + Math.random() * 2;
   }
 
+  // Codifica el estado como entero: appearance*2 + stability → {0,1,2,3}
   getState() {
     return this.appearance * 2 + this.stability;
   }
-
-  getProperties() {
-    return {
-      appearance: this.appearance ? 'Alterada' : 'Normal',
-      stability: this.stability ? 'Vibrando' : 'Fija',
-      isDefective: this.isDefective,
-      isVibrating: this.isVibrating,
-      color: this.color,
-      shape: this.shape,
-    };
-  }
 };
+
+
+// Environment: entorno MDP que genera cajas y ejecuta acciones
 
 App.Environment = class {
   constructor() {
     this.currentBox = null;
   }
 
+  // Crea una nueva caja y la pone en la cinta
   generateBox() {
     this.currentBox = new App.Box();
     return this.currentBox;
   }
 
+  // Ejecuta una acción sobre la caja actual y retorna {reward, nextState}
   executeAction(action) {
     const box = this.currentBox;
     if (!box) return { reward: 0, nextState: 0 };
-
-    let reward;
-    if (action === 1) {
-      reward = box.isDefective ? 10 : -10;
-    } else {
-      reward = box.isDefective ? -20 : 1;
-    }
-
+    const reward = App.Environment.computeReward(action, box.isDefective);
     const nextBox = this.generateBox();
     return { reward: reward, nextState: nextBox.getState() };
   }
 };
+
+// Función pura de recompensa compartida (evita duplicación)
+// Acción 0 = dejar pasar, Acción 1 = descartar
+App.Environment.computeReward = function(action, isDefective) {
+  if (action === 1) return isDefective ? 10 : -10;   // descartar: +10 acierto, -10 error
+  return isDefective ? -20 : 1;                       // pasar: -20 fallo crítico, +1 ok
+};
+
+
+// Renderer: dibuja toda la simulación en un canvas 2D
 
 App.Renderer = class {
   constructor(canvasId) {
     this.canvas = document.getElementById(canvasId);
     this.ctx = this.canvas.getContext('2d');
     this.resize();
+    // Cajas activas en pantalla
     this.boxes = [];
+    // Máquina de estados del brazo: idle → pushing → retracting → idle
     this.armState = 'idle';
     this.armTimer = 0;
+    // Efecto de texto flotante tras cada decisión
     this.decisionEffect = null;
+    // Cursor intermitente en la zona de decisión
     this.showCursor = true;
     this.cursorTimer = 0;
 
     window.addEventListener('resize', () => this.resize());
   }
 
+  // Ajusta el canvas al ancho del contenedor
   resize() {
     const container = this.canvas.parentElement;
     this.W = this.canvas.width = Math.min(container.clientWidth, 960);
@@ -76,18 +86,17 @@ App.Renderer = class {
     this.beltY = this.H * 0.5;
   }
 
-  getSpeed() {
-    return App.controller ? App.controller.speed : 2;
-  }
-
+  // Fondo: cinta transportadora con rodillos
   drawBackground() {
     const ctx = this.ctx;
     ctx.fillStyle = '#2F3640';
     ctx.fillRect(0, 0, this.W, this.H);
 
+    // Cuerpo de la cinta
     ctx.fillStyle = '#414956';
     ctx.fillRect(0, this.beltY - 45, this.W, 90);
 
+    // Rodillos (círculos en bordes superior e inferior)
     ctx.strokeStyle = '#536173';
     ctx.lineWidth = 2;
     for (let x = 0; x < this.W; x += 40) {
@@ -99,24 +108,29 @@ App.Renderer = class {
       ctx.stroke();
     }
 
+    // Paneles superior e inferior de la máquina
     ctx.fillStyle = '#363D48';
     ctx.fillRect(0, 0, this.W, this.beltY - 55);
     ctx.fillRect(0, this.beltY + 55, this.W, this.H - (this.beltY + 55));
   }
 
+  // Brazo robótico con animación de empuje y retracción
   drawArm() {
     const ctx = this.ctx;
     const baseX = this.W * 0.52;
     const baseY = this.beltY - 70;
 
+    // Soporte vertical
     ctx.fillStyle = '#536173';
     ctx.fillRect(baseX - 6, baseY - 30, 12, 30);
 
+    // Base circular
     ctx.fillStyle = '#4A5463';
     ctx.beginPath();
     ctx.arc(baseX, baseY, 8, 0, Math.PI * 2);
     ctx.fill();
 
+    // Ángulo del brazo según el estado de la animación
     let armAngle = -Math.PI / 2;
     if (this.armState === 'pushing') {
       const progress = this.armTimer / 15;
@@ -130,6 +144,7 @@ App.Renderer = class {
     const tipX = baseX + Math.cos(armAngle) * armLen;
     const tipY = baseY + Math.sin(armAngle) * armLen;
 
+    // Brazo
     ctx.strokeStyle = '#93BFBB';
     ctx.lineWidth = 5;
     ctx.beginPath();
@@ -137,11 +152,13 @@ App.Renderer = class {
     ctx.lineTo(tipX, tipY);
     ctx.stroke();
 
+    // Punta del brazo
     ctx.fillStyle = '#A8D5D1';
     ctx.beginPath();
     ctx.arc(tipX, tipY, 6, 0, Math.PI * 2);
     ctx.fill();
 
+    // Etiqueta de estado
     ctx.font = '10px monospace';
     ctx.fillStyle = '#93BFBB';
     ctx.textAlign = 'center';
@@ -150,6 +167,7 @@ App.Renderer = class {
     else if (this.armState === 'retracting') ctx.fillText('RETRAYENDO', baseX, baseY - 40);
   }
 
+  // Dibuja una caja individual con efectos visuales
   drawBox(x, y, box, alpha = 1) {
     const ctx = this.ctx;
     const w = 55;
@@ -157,23 +175,29 @@ App.Renderer = class {
     ctx.save();
     ctx.globalAlpha = alpha;
 
+    // Vibración vertical si corresponde
     const wobble = box.isVibrating ? Math.sin(box.wobbleOffset) * 3 : 0;
     ctx.translate(x, y + wobble);
 
+    // Deformación por bordes irregulares
     if (box.shape === 'deformed') {
       ctx.transform(1, 0.05, -0.03, 1, 0, 0);
     }
 
+    // Cuerpo de la caja
     ctx.fillStyle = box.color;
     ctx.fillRect(-w / 2, -h / 2, w, h);
 
+    // Borde
     ctx.strokeStyle = '#ffffff22';
     ctx.lineWidth = 2;
     ctx.strokeRect(-w / 2, -h / 2, w, h);
 
+    // Brillo (reflejo)
     ctx.fillStyle = '#ffffff44';
     ctx.fillRect(-w / 2 + 4, -h / 2 + 4, w / 3, h - 8);
 
+    // Línea central
     ctx.strokeStyle = '#ffffff66';
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -181,6 +205,7 @@ App.Renderer = class {
     ctx.lineTo(w / 2, 0);
     ctx.stroke();
 
+    // Indicador "!" sobre cajas que vibran
     if (box.isVibrating) {
       ctx.fillStyle = 'rgba(224,138,138,0.3)';
       ctx.font = '16px monospace';
@@ -191,6 +216,7 @@ App.Renderer = class {
     ctx.restore();
   }
 
+  // Línea punteada y cursor en la zona de decisión
   drawDecisionZone() {
     const ctx = this.ctx;
     const x = this.W * 0.52;
@@ -214,62 +240,71 @@ App.Renderer = class {
     }
   }
 
+  // Agrega una caja al pipeline de renderizado (aparece por la izquierda)
   addBox(box) {
     this.boxes.push({
       box: box,
       x: -60,
       y: this.beltY,
-      state: 'entering',
+      state: 'entering',     // entering → accepted/rejected
       decided: false,
       action: null,
-      vy: 0,
-      alpha: 1,
+      vy: 0,                 // velocidad vertical (para caja descartada)
+      alpha: 1,              // opacidad (para fade-out al descartar)
     });
   }
 
+  // Inicia la animación de decisión sobre una caja
   animateDecision(boxData, action) {
     boxData.decided = true;
     boxData.action = action;
     this.showCursor = false;
-    this.cursorTimer = 20;
+    this.cursorTimer = 20;   // frames hasta que reaparezca el cursor
 
     if (action === 1) {
+      // Descartar: caja sale volando hacia abajo, brazo empuja
       boxData.state = 'rejected';
       boxData.vy = -2;
       this.armState = 'pushing';
       this.armTimer = 0;
       this.decisionEffect = { x: boxData.x, y: boxData.y, text: 'DESCARTAR', color: '#E08A8A' };
     } else {
+      // Dejar pasar: caja sigue su camino
       boxData.state = 'accepted';
       this.decisionEffect = { x: boxData.x, y: boxData.y, text: 'PASAR', color: '#93BFBB' };
     }
   }
 
-  update() {
+  // Actualiza posiciones, animaciones y dispara decisiones (un frame)
+  update(speed) {
+    const effectiveSpeed = speed || 2;
     const decisionX = this.W * 0.52;
-    const speed = this.getSpeed();
 
+    // Recorremos de atrás hacia adelante para poder eliminar elementos
     for (let i = this.boxes.length - 1; i >= 0; i--) {
       const bd = this.boxes[i];
       if (!bd) continue;
       bd.box.wobbleOffset += 0.05 * bd.box.wobbleSpeed;
 
       if (bd.state === 'entering') {
-        bd.x += speed;
+        bd.x += effectiveSpeed;
+        // Al llegar a la zona de decisión, el controlador toma la decisión
         if (bd.x >= decisionX && !bd.decided) {
           if (App.controller) {
             App.controller.handleDecision(bd);
           }
         }
+        // Eliminar si salió de pantalla sin decidir (no debería ocurrir)
         if (bd.x > this.W + 80) {
           this.boxes.splice(i, 1);
         }
       } else if (bd.state === 'accepted') {
-        bd.x += speed * 1.2;
+        bd.x += effectiveSpeed * 1.2;
         if (bd.x > this.W + 80) {
           this.boxes.splice(i, 1);
         }
       } else if (bd.state === 'rejected') {
+        // Caída con fade-out
         bd.vy += 0.3;
         bd.y += bd.vy;
         bd.alpha -= 0.02;
@@ -279,6 +314,7 @@ App.Renderer = class {
       }
     }
 
+    // Máquina de estados del brazo: pushing → retracting → idle
     if (this.armState === 'pushing') {
       this.armTimer++;
       if (this.armTimer > 15) {
@@ -293,6 +329,7 @@ App.Renderer = class {
       }
     }
 
+    // Efecto de texto flotante: sube y se desvanece
     if (this.decisionEffect) {
       this.decisionEffect.y -= 0.8;
       this.decisionEffect.alpha = (this.decisionEffect.alpha || 1) - 0.02;
@@ -301,6 +338,7 @@ App.Renderer = class {
       }
     }
 
+    // Temporizador para reaparecer el cursor tras una decisión
     if (this.cursorTimer > 0) {
       this.cursorTimer--;
       if (this.cursorTimer <= 0) {
@@ -309,6 +347,7 @@ App.Renderer = class {
     }
   }
 
+  // Renderiza un frame completo
   draw() {
     this.drawBackground();
 
@@ -319,6 +358,7 @@ App.Renderer = class {
     this.drawDecisionZone();
     this.drawArm();
 
+    // Texto flotante de la última decisión
     if (this.decisionEffect) {
       const ctx = this.ctx;
       ctx.save();
@@ -331,6 +371,7 @@ App.Renderer = class {
     }
   }
 
+  // Reinicia el estado visual del renderer
   clear() {
     this.boxes = [];
     this.armState = 'idle';
@@ -341,32 +382,39 @@ App.Renderer = class {
   }
 };
 
+
+// SimController: orquesta Q-Learning, entorno, renderer y gráfica
+
 App.SimController = class {
   constructor() {
+    // Motor RL: 4 estados × 2 acciones
     this.qtable = new App.QTable(4, 2);
     this.policy = new App.EpsilonGreedy();
     this.env = new App.Environment();
     this.renderer = new App.Renderer('simulator-canvas');
     this.chart = new App.ChartRenderer('chart-canvas');
 
+    // Métricas y estado de la simulación
     this.episode = 1;
-    this.totalReward = 0;
     this.episodeReward = 0;
-    this.errors = 0;
-    this.totalSteps = 0;
+    this.errors = 0;              // errores en el episodio actual
+    this.totalSteps = 0;          // pasos totales acumulados (no se resetea por episodio)
     this.running = false;
     this.paused = false;
-    this.speed = 2;
+    this.speed = 2;               // 2, 8 o 20
     this.stepsThisEpisode = 0;
-    this.EPISODE_LENGTH = 30;
+    this.EPISODE_LENGTH = 30;     // cajas por episodio
     this.animFrameId = null;
-    this.decisionMadeThisFrame = false;
+    this.decisionMadeThisFrame = false;  // evita decisiones duplicadas en el mismo frame
 
+    // Modo: 'rl' (agente Q-Learning) o 'rules' (clasificador fijo)
     this.mode = 'rl';
+    // Historial de recompensas por episodio para la gráfica
     this.episodeRewardsRL = [];
     this.episodeRewardsRules = [];
     this.episodeRewardRules = 0;
     this.errorsRules = 0;
+    // Celdas actualizadas en el último paso (para animar la Q-Table)
     this.lastUpdatedState = -1;
     this.lastUpdatedAction = -1;
     this.episodeOverlayTimer = null;
@@ -375,6 +423,7 @@ App.SimController = class {
     this.startNewEpisode();
   }
 
+  // Conecta los botones de la interfaz con sus handlers
   setupControls() {
     document.getElementById('btn-train').addEventListener('click', () => {
       this.running = true;
@@ -411,33 +460,32 @@ App.SimController = class {
       this.mode = 'rl';
       document.getElementById('btn-mode-rl').classList.add('active');
       document.getElementById('btn-mode-rules').classList.remove('active');
-      var ind = document.getElementById('mode-indicator');
+      let ind = document.getElementById('mode-indicator');
       if (ind) { ind.textContent = 'Entrenando agente RL'; ind.className = 'mode-indicator rl-mode'; }
     });
     document.getElementById('btn-mode-rules').addEventListener('click', () => {
       this.mode = 'rules';
       document.getElementById('btn-mode-rules').classList.add('active');
       document.getElementById('btn-mode-rl').classList.remove('active');
-      var ind = document.getElementById('mode-indicator');
+      let ind = document.getElementById('mode-indicator');
       if (ind) { ind.textContent = 'Clasificador por reglas fijas'; ind.className = 'mode-indicator rules-mode'; }
     });
   }
 
+  // Clasificador por reglas fijas: si apariencia alterada o vibra → descartar
   ruleBasedAction(box) {
     if (box.appearance === 1 || box.stability === 1) return 1;
     return 0;
   }
 
+  // Calcula la recompensa que habría obtenido el clasificador fijo
   computeRuleReward(boxData) {
     const box = boxData.box;
     const action = this.ruleBasedAction(box);
-    if (action === 1) {
-      return box.isDefective ? 10 : -10;
-    } else {
-      return box.isDefective ? -20 : 1;
-    }
+    return App.Environment.computeReward(action, box.isDefective);
   }
 
+  // Prepara el inicio de un nuevo episodio
   startNewEpisode() {
     this.episodeReward = 0;
     this.episodeRewardRules = 0;
@@ -448,6 +496,7 @@ App.SimController = class {
     this.updateUI();
   }
 
+  // Llamado por el Renderer cuando una caja llega a la zona de decisión
   handleDecision(boxData) {
     if (this.decisionMadeThisFrame) return;
     if (boxData.decided) return;
@@ -455,6 +504,7 @@ App.SimController = class {
 
     const state = boxData.box.getState();
 
+    // Seleccionar acción según el modo actual
     let action;
     if (this.mode === 'rules') {
       action = this.ruleBasedAction(boxData.box);
@@ -462,9 +512,10 @@ App.SimController = class {
       action = this.policy.selectAction(state, this.qtable);
     }
 
-    var result = this.env.executeAction(action);
+    let result = this.env.executeAction(action);
     this.renderer.animateDecision(boxData, action);
 
+    // Solo en modo RL se actualiza la Q-Table y decae epsilon
     if (this.mode === 'rl') {
       this.qtable.update(state, action, result.reward, result.nextState);
       this.lastUpdatedState = state;
@@ -472,24 +523,27 @@ App.SimController = class {
       this.policy.decayEpsilon();
     }
 
-    this.totalReward += result.reward;
+    // Acumular métricas
     this.episodeReward += result.reward;
     this.totalSteps++;
     this.stepsThisEpisode++;
 
     if (result.reward < 0) this.errors++;
 
+    // Recompensa del clasificador fijo (para comparar en la gráfica)
     const ruleReward = this.computeRuleReward(boxData);
     this.episodeRewardRules += ruleReward;
     if (ruleReward < 0) this.errorsRules++;
 
+    // ¿Fin del episodio?
     if (this.stepsThisEpisode >= this.EPISODE_LENGTH) {
-      var epScore = this.episodeReward;
+      let epScore = this.episodeReward;
       this.episodeRewardsRL.push(this.episodeReward);
       this.episodeRewardsRules.push(this.episodeRewardRules);
       this.chart.draw(this.episodeRewardsRL, this.episodeRewardsRules);
-      var prevEpisode = this.episode;
+      let prevEpisode = this.episode;
       this.episode++;
+      // Resetear métricas por episodio
       this.errors = 0;
       this.errorsRules = 0;
       this.episodeReward = 0;
@@ -507,10 +561,12 @@ App.SimController = class {
     this.updateUI();
   }
 
+  // Avanza un solo paso (modo manual)
   singleStep() {
     const decisionX = this.renderer.W * 0.52;
-    for (var i = 0; i < this.renderer.boxes.length; i++) {
-      var bd = this.renderer.boxes[i];
+    // Buscar la primera caja no decidida y forzar decisión
+    for (let i = 0; i < this.renderer.boxes.length; i++) {
+      let bd = this.renderer.boxes[i];
       if (!bd.decided && bd.state === 'entering') {
         bd.x = decisionX;
         this.decisionMadeThisFrame = false;
@@ -519,18 +575,21 @@ App.SimController = class {
         return;
       }
     }
-    var box = this.env.generateBox();
+    // Si no hay cajas pendientes, generar una nueva
+    let box = this.env.generateBox();
     this.renderer.addBox(box);
     this.renderer.draw();
   }
 
+  // Bucle principal de animación (requestAnimationFrame)
   loop() {
     if (!this.running || this.paused) return;
 
     this.decisionMadeThisFrame = false;
-    this.renderer.update();
+    this.renderer.update(this.speed);
     this.renderer.draw();
 
+    // Si se vació la cinta, agregar una caja nueva
     if (this.renderer.boxes.length === 0) {
       const box = this.env.generateBox();
       this.renderer.addBox(box);
@@ -539,6 +598,7 @@ App.SimController = class {
     this.animFrameId = requestAnimationFrame(() => this.loop());
   }
 
+  // Actualiza los indicadores numéricos de la barra de métricas
   updateUI() {
     const scoreEl = document.getElementById('score');
     const errorsEl = document.getElementById('errors');
@@ -558,11 +618,12 @@ App.SimController = class {
       : 'metric-value negative';
   }
 
+  // Overlay que aparece brevemente al completar un episodio
   showEpisodeOverlay(epNum, score) {
-    var overlay = document.getElementById('episode-overlay');
+    let overlay = document.getElementById('episode-overlay');
     if (!overlay) return;
-    var titleEl = overlay.querySelector('.episode-overlay-title');
-    var scoreEl = overlay.querySelector('.episode-overlay-score');
+    let titleEl = overlay.querySelector('.episode-overlay-title');
+    let scoreEl = overlay.querySelector('.episode-overlay-score');
     if (!titleEl || !scoreEl) return;
 
     titleEl.textContent = 'Episodio ' + epNum + ' completado';
@@ -576,12 +637,12 @@ App.SimController = class {
     }, 1200);
   }
 
+  // Reinicia todo: Q-Table, política, métricas, renderer, gráfica
   reset() {
     if (this.animFrameId) cancelAnimationFrame(this.animFrameId);
     this.running = false;
     this.paused = false;
     this.episode = 1;
-    this.totalReward = 0;
     this.episodeReward = 0;
     this.episodeRewardRules = 0;
     this.errors = 0;
@@ -600,6 +661,10 @@ App.SimController = class {
   }
 };
 
+
+// ChartRenderer: gráfica de líneas de recompensa por episodio
+// Compara agente RL (línea dorada) vs clasificador fijo (línea gris punteada)
+
 App.ChartRenderer = class {
   constructor(canvasId) {
     this.canvas = document.getElementById(canvasId);
@@ -608,49 +673,55 @@ App.ChartRenderer = class {
     this.H = this.canvas.height;
   }
 
+  // Dibuja la gráfica completa con los datos acumulados de ambos modos
   draw(rlData, rulesData) {
-    var parentW = this.canvas.parentElement.clientWidth;
+    let parentW = this.canvas.parentElement.clientWidth;
     if (!parentW) parentW = 960;
     this.canvas.width = parentW;
     this.canvas.height = 160;
     this.W = this.canvas.width;
     this.H = this.canvas.height;
 
-    var ctx = this.ctx;
-    var pad = { top: 20, right: 20, bottom: 30, left: 50 };
-    var w = this.W - pad.left - pad.right;
-    var h = this.H - pad.top - pad.bottom;
+    let ctx = this.ctx;
+    let pad = { top: 20, right: 20, bottom: 30, left: 50 };
+    let w = this.W - pad.left - pad.right;
+    let h = this.H - pad.top - pad.bottom;
     if (w <= 0 || h <= 0) return;
 
+    // Fondo
     ctx.fillStyle = '#2F3640';
     ctx.fillRect(0, 0, this.W, this.H);
 
+    // Cuadrícula horizontal (4 líneas)
     ctx.strokeStyle = '#536173';
     ctx.lineWidth = 1;
-    for (var i = 0; i <= 4; i++) {
-      var gridY = pad.top + (h / 4) * i;
+    for (let i = 0; i <= 4; i++) {
+      let gridY = pad.top + (h / 4) * i;
       ctx.beginPath();
       ctx.moveTo(pad.left, gridY);
       ctx.lineTo(this.W - pad.right, gridY);
       ctx.stroke();
     }
 
-    var allData = rlData.concat(rulesData);
-    var maxVal = Math.max.apply(null, allData.concat([1]));
-    var minVal = Math.min.apply(null, allData.concat([0]));
-    var range = Math.max(Math.abs(maxVal), Math.abs(minVal), 50);
-    var yMin = -range;
-    var yMax = range;
+    // Calcular rango Y simétrico
+    let allData = rlData.concat(rulesData);
+    let maxVal = Math.max.apply(null, allData.concat([1]));
+    let minVal = Math.min.apply(null, allData.concat([0]));
+    let range = Math.max(Math.abs(maxVal), Math.abs(minVal), 50);
+    let yMin = -range;
+    let yMax = range;
 
+    // Etiquetas del eje Y
     ctx.fillStyle = '#95A5A5';
     ctx.font = '9px monospace';
     ctx.textAlign = 'right';
-    for (var i = 0; i <= 4; i++) {
-      var val = yMin + ((yMax - yMin) / 4) * i;
-      var labelY = pad.top + (h / 4) * (4 - i);
+    for (let i = 0; i <= 4; i++) {
+      let val = yMin + ((yMax - yMin) / 4) * i;
+      let labelY = pad.top + (h / 4) * (4 - i);
       ctx.fillText(Math.round(val), pad.left - 5, labelY + 3);
     }
 
+    // Línea RL (dorada, sólida)
     if (rlData.length >= 2) {
       ctx.strokeStyle = '#F2D091';
       ctx.setLineDash([]);
@@ -659,6 +730,7 @@ App.ChartRenderer = class {
       this.drawDots(rlData, pad, w, h, yMin, yMax, '#F2D091');
     }
 
+    // Línea reglas fijas (gris, punteada)
     if (rulesData.length >= 2) {
       ctx.strokeStyle = '#95A5A5';
       ctx.setLineDash([4, 4]);
@@ -668,44 +740,51 @@ App.ChartRenderer = class {
       ctx.setLineDash([]);
     }
 
+    // Etiquetas del eje X (números de episodio)
     ctx.fillStyle = '#95A5A5';
     ctx.font = '9px monospace';
     ctx.textAlign = 'center';
-    var maxEp = Math.max(rlData.length, 1);
-    var step = Math.max(1, Math.floor(maxEp / 8));
-    for (var i = 1; i <= maxEp; i += step) {
-      var x = pad.left + (w * (i - 1)) / Math.max(maxEp - 1, 1);
+    let maxEp = Math.max(rlData.length, 1);
+    let step = Math.max(1, Math.floor(maxEp / 8));
+    for (let i = 1; i <= maxEp; i += step) {
+      let x = pad.left + (w * (i - 1)) / Math.max(maxEp - 1, 1);
       ctx.fillText(i, x, this.H - 8);
     }
     ctx.fillText('Episodio', this.W / 2, this.H - 2);
   }
 
+  // Traza una línea conectando los puntos de datos
   drawLine(data, pad, w, h, yMin, yMax) {
-    var ctx = this.ctx;
+    let ctx = this.ctx;
     if (data.length < 2) return;
     ctx.beginPath();
-    for (var i = 0; i < data.length; i++) {
-      var x = pad.left + (w * i) / Math.max(data.length - 1, 1);
-      var y = pad.top + h * (1 - (data[i] - yMin) / (yMax - yMin));
+    for (let i = 0; i < data.length; i++) {
+      let x = pad.left + (w * i) / Math.max(data.length - 1, 1);
+      let y = pad.top + h * (1 - (data[i] - yMin) / (yMax - yMin));
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     }
     ctx.stroke();
   }
 
+  // Dibuja círculos en cada punto de datos
   drawDots(data, pad, w, h, yMin, yMax, color) {
-    var ctx = this.ctx;
+    let ctx = this.ctx;
     ctx.fillStyle = color;
-    for (var i = 0; i < data.length; i++) {
-      var x = pad.left + (w * i) / Math.max(data.length - 1, 1);
-      var y = pad.top + h * (1 - (data[i] - yMin) / (yMax - yMin));
+    for (let i = 0; i < data.length; i++) {
+      let x = pad.left + (w * i) / Math.max(data.length - 1, 1);
+      let y = pad.top + h * (1 - (data[i] - yMin) / (yMax - yMin));
       ctx.beginPath();
       ctx.arc(x, y, 3, 0, Math.PI * 2);
       ctx.fill();
     }
   }
 
+  // Limpia explícitamente y restaura tamaño del canvas
   clear() {
+    if (this.ctx) {
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
     if (this.canvas) {
       this.canvas.width = this.canvas.parentElement.clientWidth || 960;
       this.canvas.height = 160;

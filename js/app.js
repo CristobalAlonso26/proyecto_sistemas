@@ -1,28 +1,38 @@
+// UI de la aplicación: modales, navegación scroll-spy, Q-Table en vivo.
+// Se ejecuta en un IIFE para no contaminar el scope global.
+
 (function () {
+  
+  // Sistema de modales para los conceptos de RL
+  
+
+  // Cierra y elimina el modal actual del DOM
   function closeModal() {
-    var overlay = document.querySelector('.modal-overlay');
+    let overlay = document.querySelector('.modal-overlay');
     if (overlay) {
       overlay.remove();
       document.body.style.overflow = '';
     }
   }
 
+  // Abre un modal con el contenido detallado de una tarjeta de concepto
   function openModal(card) {
     closeModal();
 
-    var emojiEl = card.querySelector('.emoji');
-    var emoji = emojiEl ? emojiEl.textContent : '';
-    var title = card.querySelector('h4').textContent;
-    var tagline = card.querySelector('p').textContent;
-    var detail = card.querySelector('.detail');
+    // Extraer datos de la tarjeta
+    let title = card.querySelector('h4').textContent;
+    let tagline = card.querySelector('p').textContent;
+    let detail = card.querySelector('.detail');
 
-    var overlay = document.createElement('div');
+    // Construir overlay
+    let overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
 
-    var content = document.createElement('div');
+    let content = document.createElement('div');
     content.className = 'modal-content';
 
-    var closeBtn = document.createElement('button');
+    // Botón de cierre (X)
+    let closeBtn = document.createElement('button');
     closeBtn.className = 'modal-close';
     closeBtn.innerHTML = '&times;';
     closeBtn.addEventListener('click', function (e) {
@@ -32,29 +42,26 @@
 
     content.appendChild(closeBtn);
 
-    if (emoji) {
-      var emojiSpan = document.createElement('span');
-      emojiSpan.className = 'modal-emoji';
-      emojiSpan.textContent = emoji;
-      content.appendChild(emojiSpan);
-    }
-
-    var titleEl = document.createElement('h3');
+    // Título del concepto
+    let titleEl = document.createElement('h3');
     titleEl.textContent = title;
     content.appendChild(titleEl);
 
-    var tagEl = document.createElement('p');
+    // Descripción informal (tagline)
+    let tagEl = document.createElement('p');
     tagEl.className = 'modal-tagline';
     tagEl.textContent = tagline;
     content.appendChild(tagEl);
 
-    var detailEl = document.createElement('div');
+    // Definición técnica (se copia del .detail oculto en la tarjeta)
+    let detailEl = document.createElement('div');
     detailEl.className = 'modal-detail';
     detailEl.innerHTML = detail.innerHTML;
     content.appendChild(detailEl);
 
     overlay.appendChild(content);
 
+    // Cerrar al hacer clic fuera del contenido
     overlay.addEventListener('click', function (e) {
       if (e.target === overlay) closeModal();
     });
@@ -63,6 +70,7 @@
     document.body.appendChild(overlay);
   }
 
+  // Asignar clic a cada tarjeta de concepto
   document.querySelectorAll('#concept-cards .card').forEach(function (card) {
     card.addEventListener('click', function (e) {
       e.stopPropagation();
@@ -70,10 +78,16 @@
     });
   });
 
+  // Cerrar modal con tecla Escape
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') closeModal();
   });
 
+  
+  // Navegación: scroll-spy con IntersectionObserver
+  
+
+  // Resaltar enlace activo al hacer clic
   document.querySelectorAll('.nav-links a').forEach(function (link) {
     link.addEventListener('click', function () {
       document.querySelectorAll('.nav-links a').forEach(function (l) { l.classList.remove('active'); });
@@ -81,55 +95,64 @@
     });
   });
 
-  var sections = document.querySelectorAll('section');
-  var navLinks = document.querySelectorAll('.nav-links a');
-  var observer = new IntersectionObserver(
+  // Observer que actualiza el enlace activo según la sección visible
+  let sections = document.querySelectorAll('section');
+  let navLinks = document.querySelectorAll('.nav-links a');
+  let observer = new IntersectionObserver(
     function (entries) {
       entries.forEach(function (entry) {
         if (entry.isIntersecting) {
-          var id = entry.target.id;
+          let id = entry.target.id;
           navLinks.forEach(function (link) {
             link.classList.toggle('active', link.getAttribute('href') === '#' + id);
           });
         }
       });
     },
-    { threshold: 0.5 }
+    { threshold: 0.5 }   // se activa cuando el 50% de la sección es visible
   );
   sections.forEach(function (s) { observer.observe(s); });
 
-  var sim = new App.SimController();
+  
+  // Simulación y Q-Table en vivo
+  
+
+  // Crear el controlador principal y exponerlo globalmente
+  let sim = new App.SimController();
   App.controller = sim;
 
-  var stateLabels = [
+  // Etiquetas para las 4 filas de la Q-Table
+  let stateLabels = [
     'Normal + Fija',
     'Normal + Vibrando',
     'Alterada + Fija',
     'Alterada + Vibrando',
   ];
 
-  var qtableInitialized = false;
+  let qtableInitialized = false;
 
+  // Construye la tabla HTML con inputs editables para cada celda Q(s,a)
   function initQTable() {
-    var tbody = document.getElementById('live-qtable-body');
+    let tbody = document.getElementById('live-qtable-body');
     if (!tbody) return;
-    var table = sim.qtable.table;
+    let table = sim.qtable.table;
     tbody.innerHTML = '';
-    for (var s = 0; s < table.length; s++) {
-      var tr = document.createElement('tr');
-      var tdLabel = document.createElement('td');
+    for (let s = 0; s < table.length; s++) {
+      let tr = document.createElement('tr');
+      let tdLabel = document.createElement('td');
       tdLabel.textContent = stateLabels[s];
       tr.appendChild(tdLabel);
-      for (var a = 0; a < table[s].length; a++) {
-        var td = document.createElement('td');
+      for (let a = 0; a < table[s].length; a++) {
+        let td = document.createElement('td');
         td.setAttribute('data-state', s);
         td.setAttribute('data-action', a);
-        var input = document.createElement('input');
+        let input = document.createElement('input');
         input.type = 'number';
         input.step = '0.1';
         input.setAttribute('data-state', s);
         input.setAttribute('data-action', a);
         input.value = table[s][a].toFixed(1);
+        // IIFE para capturar state y action en el closure del listener
         (function (state, action) {
           input.addEventListener('change', function () {
             sim.qtable.table[state][action] = parseFloat(this.value) || 0;
@@ -143,42 +166,45 @@
     qtableInitialized = true;
   }
 
+  // Actualiza los valores de la Q-Table en pantalla y anima celdas modificadas
   function refreshQTable() {
-    var tbody = document.getElementById('live-qtable-body');
+    let tbody = document.getElementById('live-qtable-body');
     if (!tbody) return;
     if (!qtableInitialized) initQTable();
-    var table = sim.qtable.table;
-    var inputs = tbody.querySelectorAll('input[data-state]');
+    let table = sim.qtable.table;
+    let inputs = tbody.querySelectorAll('input[data-state]');
 
-    for (var i = 0; i < inputs.length; i++) {
-      var inp = inputs[i];
-      var s = parseInt(inp.getAttribute('data-state'));
-      var a = parseInt(inp.getAttribute('data-action'));
+    for (let i = 0; i < inputs.length; i++) {
+      let inp = inputs[i];
+      let s = parseInt(inp.getAttribute('data-state'));
+      let a = parseInt(inp.getAttribute('data-action'));
+      // No sobrescribir el valor si el usuario está editando
       if (document.activeElement !== inp) {
         inp.value = table[s][a].toFixed(1);
       }
-      var td = inp.parentElement;
+      // Efecto flash en la celda que acaba de actualizarse
+      let td = inp.parentElement;
       td.classList.remove('flash');
       if (s === sim.lastUpdatedState && a === sim.lastUpdatedAction) {
         td.classList.add('flash');
       }
     }
 
+    // Consumir el indicador de última celda actualizada
     if (sim.lastUpdatedState >= 0) {
       sim.lastUpdatedState = -1;
       sim.lastUpdatedAction = -1;
     }
   }
 
-  setInterval(function () {
+  // Polling periódico: refresca la Q-Table cada 800ms mientras haya actividad
+  function scheduleRefresh() {
     if (sim.running || sim.totalSteps > 0) {
       refreshQTable();
     }
-  }, 800);
+    setTimeout(scheduleRefresh, 800);
+  }
 
+  scheduleRefresh();
   initQTable();
-
-  document.getElementById('btn-reset').addEventListener('click', function () {
-    setTimeout(refreshQTable, 100);
-  });
 })();

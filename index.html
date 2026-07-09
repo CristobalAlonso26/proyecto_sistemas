@@ -82,14 +82,14 @@
       </div>
 
       <div class="diagram-tooltips">
-        <div class="diagram-tip" data-target="agente">
-          <strong>Agente:</strong> Entidad que percibe el estado del entorno, selecciona acciones seg&uacute;n su pol&iacute;tica &pi;(a|s) y aprende a partir de la recompensa observada. No requiere ejemplos etiquetados: su &uacute;nica gu&iacute;a es maximizar la recompensa acumulada.
+        <div class="diagram-tip">
+          <strong>Agente:</strong> El agente es quien toma las decisiones. Observa lo que sucede en el entorno, elige qu&eacute; hacer en cada momento y aprende de los resultados. No necesita que le digan qu&eacute; es correcto: descubre por s&iacute; mismo, mediante prueba y error, c&oacute;mo conseguir la mayor puntuaci&oacute;n posible.
         </div>
-        <div class="diagram-tip" data-target="entorno">
-          <strong>Entorno:</strong> Sistema externo modelado como un MDP. Recibe la acci&oacute;n del agente, transiciona a un nuevo estado seg&uacute;n P(s'|s,a) y emite una recompensa escalar R(s,a). Puede ser determinista o estoc&aacute;stico.
+        <div class="diagram-tip">
+          <strong>Entorno:</strong> El entorno es el mundo donde vive el agente. Recibe sus acciones, cambia de situaci&oacute;n y le devuelve una puntuaci&oacute;n. El agente no conoce de antemano c&oacute;mo funciona: debe aprender interactuando con &eacute;l, paso a paso.
         </div>
-        <div class="diagram-tip" data-target="recompensa">
-          <strong>Recompensa:</strong> Se&ntilde;al num&eacute;rica escalar R<sub>t+1</sub> que el entorno emite en el paso siguiente a la acci&oacute;n. Define el objetivo del aprendizaje: el agente busca maximizar el retorno acumulado G<sub>t</sub> = &Sigma; &gamma;<sup>k</sup> r<sub>t+k+1</sub>.
+        <div class="diagram-tip">
+          <strong>Recompensa:</strong> La recompensa es un n&uacute;mero que el agente recibe tras cada acci&oacute;n: positivo si hizo algo bueno, negativo si se equivoc&oacute;. No hay un profesor que le diga qu&eacute; hacer; solo recibe esta puntuaci&oacute;n y debe descifrar qu&eacute; acciones la producen. Su objetivo es maximizar la suma total de recompensas a lo largo del tiempo.
         </div>
       </div>
     </div>
@@ -181,11 +181,17 @@
   <div class="container">
     <h2>Algoritmo: Q-Learning</h2>
     <p>
-      Q-Learning (Watkins, 1989) es un algoritmo de RL <em>libre de modelo</em> y
-      <em>off-policy</em> que aprende la <strong>función de valor-acción Q(s, a)</strong>:
-      la recompensa esperada al tomar la acción <strong>a</strong> desde el estado
-      <strong>s</strong> y seguir la política óptima a partir de entonces. No requiere
-      conocer la dinámica del entorno P(s'|s,a).
+      Q-Learning es un algoritmo que permite al agente aprender por s&iacute; mismo, sin que nadie
+      le indique qu&eacute; acci&oacute;n tomar. Para lograrlo, construye una tabla (la Q-Table) donde
+      registra, para cada situaci&oacute;n y cada posible acci&oacute;n, qu&eacute; tan buena fue esa
+      decisi&oacute;n en el pasado. Con suficiente experiencia, la tabla converge a los valores correctos.
+      Formalmente, Q-Learning (Watkins, 1989) es un algoritmo <em>libre de modelo</em>,
+      es decir, no necesita conocer la din&aacute;mica interna del entorno, y
+      <em>off-policy</em>, es decir, aprende la estrategia
+      &oacute;ptima mientras explora con otra distinta. El objetivo es estimar
+      <strong>Q(s, a)</strong>: la recompensa esperada al tomar la acci&oacute;n
+      <strong>a</strong> desde el estado <strong>s</strong> y actuar de forma &oacute;ptima desde
+      entonces.
     </p>
 
     <p style="margin-top:1rem;color:var(--accent);font-family:var(--font-mono);text-align:center">
@@ -235,8 +241,8 @@
   <div class="container">
     <h2>Caso Práctico: La Fábrica</h2>
     <p>
-      Una vez comprendidos los fundamentos matemáticos de RL —el modelado como MDP, la
-      función de valor-acción Q(s,a) y la política &epsilon;-greedy— aplicaremos estos
+      Una vez comprendidos los fundamentos matem&aacute;ticos de RL: el modelado como MDP, la
+      funci&oacute;n de valor-acci&oacute;n Q(s,a) y la pol&iacute;tica &epsilon;-greedy, aplicaremos estos
       conceptos a un problema industrial concreto de detección de anomalías. Cada
       elemento teórico se traduce a una entidad física y cuantificable en el dominio
       de una línea de producción automatizada.
