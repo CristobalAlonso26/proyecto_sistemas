@@ -4,16 +4,19 @@ Aplicación web educativa que enseña los fundamentos del Aprendizaje por Refuer
 (Reinforcement Learning) mediante visualizaciones interactivas y un caso práctico
 de detección de anomalías en una línea de producción industrial.
 
-## Ejecutar
+## Ver en vivo
 
-Abrir `index.html` en el navegador, o servir con cualquier servidor HTTP:
+La aplicación está desplegada y lista para usarse a través de GitHub Pages. Puedes acceder directamente desde cualquier navegador ingresando al siguiente enlace:
+
+**[https://cristobalalonso26.github.io/proyecto_sistemas/](https://cristobalalonso26.github.io/proyecto_sistemas/)**
+
+## Ejecución local
+
+Si prefieres correr el proyecto de manera local, puedes simplemente abrir el archivo `index.html` en tu navegador, o levantarlo con cualquier servidor HTTP ligero:
 
 ```bash
 python3 -m http.server 8000
 ```
-
-Luego visitar http://localhost:8000
-
 ## Estructura
 
 ```
